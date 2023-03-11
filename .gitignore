@@ -1,0 +1,9 @@
+
+
+*.swp
+DXF
+
+QuiltList.csv
+RowList.csv
+QuiltList_*
+
