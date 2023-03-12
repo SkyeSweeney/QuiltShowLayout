@@ -1,4 +1,10 @@
 #! /usr/bin/python
+########################################################################
+#
+# Program to arrange quilts onto racks for a quilt show
+# Written by: Patrick Skye Sweeney
+#
+########################################################################
 
 import sys
 import math
@@ -40,8 +46,14 @@ O_BAY       = 3
 O_LEVEL     = 4
 
 
-class Q():
+########################################################################
+#
+########################################################################
+class QuiltApp():
 
+  ######################################################################
+  # Initialization
+  ######################################################################
   def __init__(self):
 
     # Parse command line arguments
@@ -1104,7 +1116,7 @@ if __name__ == "__main__":
 
 
   # Create a quilt object
-  q = Q()
+  q = QuiltApp()
 
   # Start processing
   q.Process()
