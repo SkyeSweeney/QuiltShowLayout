@@ -21,11 +21,6 @@ class MyPageErrors(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
-        #------------
-        
-        #self.SetBackgroundColour(wx.Colour("Light Gray"))
-
-        #------------
         
         txt = wx.StaticText(self, -1,
                             """This is a "Errors" object""",
@@ -41,11 +36,6 @@ class MyPageLayout(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
-        #------------
-        
-        #self.SetBackgroundColour(wx.Colour("Light Gray"))
-
-        #------------
         
         txt = wx.StaticText(self, -1,
                             """This is a "Layout" object""",
@@ -117,7 +107,7 @@ class MyApp(wx.App):
         self.frame.Show(True)
 
 
-        # Generate IDS we need
+        # Generate IDs we need
         self.ID_PLACE_QUILTS = wx.Window.NewControlId()
         self.ID_GENERATE_DXF = wx.Window.NewControlId()
 
@@ -130,25 +120,31 @@ class MyApp(wx.App):
 
         # FILE menu
         fileMenu = wx.Menu()
-        fileItem = fileMenu.Append(wx.ID_OPEN,   "Open",     "Open a project")
-        fileItem = fileMenu.Append(wx.ID_SAVE,   "Save",    "Save project")
-        fileItem = fileMenu.Append(wx.ID_SAVEAS, "Save as", "Save project as")
-        fileItem = fileMenu.Append(wx.ID_EXIT,   "Quit",    "Quit Application")
+        fileItemOpen   = fileMenu.Append(wx.ID_OPEN,   "Open",     "Open a project")
+        fileItemSave   = fileMenu.Append(wx.ID_SAVE,   "Save",    "Save project")
+        fileItemSaveas = fileMenu.Append(wx.ID_SAVEAS, "Save as", "Save project as")
+        fileItemQuit   = fileMenu.Append(wx.ID_EXIT,   "Quit",    "Quit Application")
         menubar.Append(fileMenu, '&File')
 
 
         # Action menu
         actionMenu = wx.Menu()
-        fileItem = actionMenu.Append(self.ID_PLACE_QUILTS,  "Place Quilts",   "Place quilts")
-        fileItem = actionMenu.Append(self.ID_GENERATE_DXF,  "Generate DXF",   "Generate DXF files")
+        actionItemPlace = actionMenu.Append(self.ID_PLACE_QUILTS,  "Place Quilts",   "Place quilts")
+        actionItemDxf   = actionMenu.Append(self.ID_GENERATE_DXF,  "Generate DXF",   "Generate DXF files")
         menubar.Append(actionMenu, '&Action')
 
         self.frame.SetMenuBar(menubar)
 
 
 
-        # Binda menu events
-        self.Bind(wx.EVT_MENU, self.OnQuit, fileItem)
+        # Bind menu events
+        self.Bind(wx.EVT_MENU, self.OnQuit,   fileItemQuit)
+        self.Bind(wx.EVT_MENU, self.OnSave,   fileItemSave)
+        self.Bind(wx.EVT_MENU, self.OnSaveas, fileItemSaveas)
+        self.Bind(wx.EVT_MENU, self.OnOpen,   fileItemOpen)
+
+        self.Bind(wx.EVT_MENU, self.OnPlace, actionItemPlace)
+        self.Bind(wx.EVT_MENU, self.OnDxf,   actionItemDxf)
 
         self.frame.SetSize((1200, 400))
         self.frame.SetTitle("Skye's Quilt Program")
@@ -161,6 +157,41 @@ class MyApp(wx.App):
     ####################################################################
     def OnQuit(self, e):
         self.frame.Close()
+    #
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnSave(self, e):
+        print("Save")
+    #
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnSaveas(self, e):
+        print("Saveas")
+    #
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnOpen(self, e):
+        print("Open")
+    #
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnPlace(self, e):
+        print("Place quilts")
+    #
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnDxf(self, e):
+        print("Generating DXF")
     #
 #
 
