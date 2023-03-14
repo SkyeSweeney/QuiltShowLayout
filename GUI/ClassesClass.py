@@ -47,28 +47,9 @@ class ClassesClass(wx.grid.Grid):
 
 
     ####################################################################
-    # Load the file
+    # Load the table from a list of lines
     ####################################################################
-    def LoadFile(self, fn):
-
-        fp = open(fn, "r")
-
-        l = []
-
-        numRows = 0
-        for line in fp:
-            toks = line.strip().split(",")
-            if len(toks[0]) == 0:
-                continue
-            if (toks[0] == "Class"):
-                continue
-            if (toks[0][0] == "#"):
-                continue
-            l.append(toks)
-            numRows += 1
-        #
-        fp.close()
-
+    def LoadLines(self, lines):
 
         self.BeginBatch()
 
@@ -77,10 +58,11 @@ class ClassesClass(wx.grid.Grid):
             self.DeleteRows(0, self.GetNumberRows())
 
         # Size for the new grid
-        self.InsertRows(0, numRows)
+        self.InsertRows(0, len(lines))
 
         rowNo = 0
-        for toks in l:
+        for line in lines:
+            toks = line.strip().split(",")
             self.SetCellValue(rowNo, 0, toks[0])   # Class
             self.SetCellValue(rowNo, 1, toks[1])   # Name
             self.SetCellValue(rowNo, 2, toks[2])   # Notes
