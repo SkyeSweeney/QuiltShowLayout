@@ -40,7 +40,8 @@ class QuiltsClass(wx.grid.Grid):
         self.SetColLabelValue(4, "Notes")
 
         # Load file
-        self.LoadFile("Quilts.csv")
+        quilts = []
+        self.LoadData(quilts)
 
     #    
 
@@ -49,27 +50,10 @@ class QuiltsClass(wx.grid.Grid):
     ####################################################################
     #
     ####################################################################
-    def LoadFile(self, fn):
-
-        fp = open(fn, "r")
-
-        l = []
-
-        numRows = 0
-        for line in fp:
-            toks = line.strip().split(",")
-            if len(toks[0]) == 0:
-                continue
-            if (toks[0] == "Entry #"):
-                continue
-            if (toks[0][0] == "#"):
-                continue
-            l.append(toks)
+    def LoadData(self, quilts):
 
 
-            numRows += 1
-        #
-        fp.close()
+        numRows = len(quilts)
 
         self.BeginBatch()
             
@@ -81,19 +65,39 @@ class QuiltsClass(wx.grid.Grid):
         self.InsertRows(0, numRows)
 
         rowNo = 0
-        for toks in l:
+        for toks in quilts:
             self.SetCellValue(rowNo,0, toks[0])   # Entry
             self.SetCellValue(rowNo,1, toks[1])   # Class
             self.SetCellValue(rowNo,2, toks[2])   # Width
             self.SetCellValue(rowNo,3, toks[3])   # Length
             self.SetCellValue(rowNo,4, toks[4])   # Notes
-
-            if toks[0] in l:
-                print("Error: Duplicate quilt ID %s in file" % toks[0])
-            #
             rowNo += 1
         #
         self.EndBatch()
         self.ForceRefresh()
     #
+
+    ####################################################################
+    # Pull data from table
+    ####################################################################
+    def PullData(self):
+
+        data = []
+        toks = [0] * 5
+
+        rows = self.GetNumberRows()
+
+        rowNo = 0
+        for iRow in range(rows):
+            toks[0] = self.GetCellValue(iRow, 0)   # Entry
+            toks[1] = self.GetCellValue(iRow, 1)   # Class
+            toks[2] = self.GetCellValue(iRow, 2)   # Width
+            toks[3] = self.GetCellValue(iRow, 3)   # Lenght
+            toks[4] = self.GetCellValue(iRow, 4)   # Notes
+            data.append(list(toks))
+        #
+        return data
+    #
+
+#    
 

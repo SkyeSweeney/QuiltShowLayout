@@ -40,7 +40,7 @@ class ClassesClass(wx.grid.Grid):
         self.classList = []
 
         # Load file
-        self.LoadFile("Classes.csv")
+        self.LoadData(self.classList)
 
     #    
 
@@ -49,7 +49,7 @@ class ClassesClass(wx.grid.Grid):
     ####################################################################
     # Load the table from a list of lines
     ####################################################################
-    def LoadLines(self, lines):
+    def LoadData(self, classes):
 
         self.BeginBatch()
 
@@ -58,23 +58,37 @@ class ClassesClass(wx.grid.Grid):
             self.DeleteRows(0, self.GetNumberRows())
 
         # Size for the new grid
-        self.InsertRows(0, len(lines))
+        self.InsertRows(0, len(classes))
 
         rowNo = 0
-        for line in lines:
-            toks = line.strip().split(",")
+        for toks in classes:
             self.SetCellValue(rowNo, 0, toks[0])   # Class
             self.SetCellValue(rowNo, 1, toks[1])   # Name
             self.SetCellValue(rowNo, 2, toks[2])   # Notes
-            if (toks[0] in self.classList):
-                print("Error: Class %s duplicated in file" % toks[0])
-            else:
-                self.classList.append(toks[0])
-            #
+            self.classList.append(toks[0])
             rowNo += 1
         #
         self.EndBatch()
         self.ForceRefresh()
+    #
+
+    ####################################################################
+    # Pull data from table
+    ####################################################################
+    def PullData(self):
+
+        data = []
+        toks = [0] * 3
+
+        rows = self.GetNumberRows()
+
+        for iRow in range(rows):
+            toks[0] = self.GetCellValue(iRow, 0)   # Class
+            toks[1] = self.GetCellValue(iRow, 1)   # Name
+            toks[2] = self.GetCellValue(iRow, 2)   # Notes
+            data.append(list(toks))
+        #
+        return data
     #
 
 

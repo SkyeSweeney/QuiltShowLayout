@@ -1,14 +1,33 @@
 
+import os
+import os.path
 
 
 
+########################################################################
+#
+########################################################################
 class FileClass:
 
+    ####################################################################
+    #
+    ####################################################################
     def __init__(self):
         pass
     #
 
+    ####################################################################
+    # Routine to aid debuging
+    ####################################################################
+    def setMode(self, mode):
+        #print("Change to mode", mode)
+        self.mode = mode
 
+
+
+    ####################################################################
+    # Read a file and return the results in a tupple of lists
+    ####################################################################
     def read(self, fn):
 
         # Assume the operation will fail.
@@ -24,70 +43,74 @@ class FileClass:
         MODE_RACKS_DATA     = 5
         MODE_OVERRIDES_HDR  = 6
         MODE_OVERRIDES_DATA = 7
-        MODE_INVENTORY = 8
-        MODE_ERROR = 9
-        MODE_DONE = 10
+        MODE_CLASSES_HDR    = 8
+        MODE_CLASSES_DATA   = 9
+        MODE_INI_DATA       = 10
+        MODE_ERROR          = 11
+        MODE_DONE           = 12
 
-        mode = MODE_HDR
-        quilts = []
-        racks = []
+        self.setMode(MODE_HDR)
+        quilts    = []
+        racks     = []
         overrides = []
+        classes   = []
+        ini       = []
         
 
         while True:
 
             # Insure the header is right
             line = fp.readline().strip()
-            print(line)
 
             ########################################
             # HEADER
             ########################################
-            if (mode == MODE_HDR):
+            if (self.mode == MODE_HDR):
 
                 if (line != "#HDQG V1.0"):
                     print("Error: Invalid file type")
-                    mode = MODE_ERROR
+                    self.setMode(MODE_ERROR)
                 else:
-                    mode = MODE_QUILT_HDR
+                    self.setMode(MODE_QUILT_SEP)
                 #
 
             ##############################################
             # QUILT SEPERATOR
             ##############################################
-            elif (mode == MODE_QUILT_SEP):
+            elif (self.mode == MODE_QUILT_SEP):
 
                 if (line != "#QUILTS"):
                     print("Error: Missing #QUILTS")
-                    mode = MODE_ERROR
+                    self.setMode(MODE_ERROR)
                 else:
-                    mode = MODE_QUILT_HDR
+                    self.setMode(MODE_QUILT_HDR)
                 #
 
             ##############################################
             # QUILT HEADER
             ##############################################
-            elif (mode == MODE_QUILT_HDR):
+            elif (self.mode == MODE_QUILT_HDR):
 
                 if ("QID,Class,Width,Length,Notes" in line):
+                    self.setMode(MODE_QUILT_DATA)
+                else:
+                    print(line)
                     print("Error: Missing QID")
-                    mode = MODE_ERROR
-                else:    
-                    mode = MODE_QUILT_DATA
+                    self.setMode(MODE_ERROR)
                 #
 
             ##############################################
             # QUILT DATA
             ##############################################
-            elif (mode == MODE_QUILT_DATA):
+            elif (self.mode == MODE_QUILT_DATA):
                 
                 if (line == "#RACKS"):
-                    mode = MODE_RACKS_HDR
-                    print("Change to RACKS_HDR")
+                    self.setMode(MODE_RACKS_HDR)
                 else:
                     toks = line.split(",")
                     if (len(toks) != 5):
-                        mode = MODE_ERROR
+                        print("C")
+                        self.setMode(MODE_ERROR)
                     else:
                         quilts.append(toks)
                     #    
@@ -96,25 +119,26 @@ class FileClass:
             ##############################################
             # RACKS HEADER
             ##############################################
-            elif (mode == MODE_RACKS_HDR):
+            elif (self.mode == MODE_RACKS_HDR):
 
                 if ("RID,Row,Side,Bay" in line):
-                    mode = MODE_RACKS_DATA
+                    self.setMode(MODE_RACKS_DATA)
                 else:    
                     print("Error: Missing RID2")
-                    mode = MODE_ERROR
+                    self.setMode(MODE_ERROR)
 
             ##############################################
             # RACKS DATA
             ##############################################
-            elif (mode == MODE_RACKS_DATA):
+            elif (self.mode == MODE_RACKS_DATA):
                 
                 if (line == "#OVERRIDES"):
-                    mode = MODE_OVERRIDES_HDR
+                    self.setMode(MODE_OVERRIDES_HDR)
                 else:
                     toks = line.split(",")
                     if (len(toks) != 14):
-                        mode = MODE_ERROR
+                        print("B")
+                        self.setMode(MODE_ERROR)
                     else:
                         racks.append(toks)
                     #    
@@ -123,61 +147,195 @@ class FileClass:
             ##############################################
             # OVERRIDES HEADER
             ##############################################
-            elif (mode == MODE_OVERRIDES_HDR):
+            elif (self.mode == MODE_OVERRIDES_HDR):
 
                 if ("QID,Row,Side,Bay,Level,Notes" in line):
-                    mode = MODE_OVERRIDES_DATA
+                    self.setMode(MODE_OVERRIDES_DATA)
                 else:    
                     print("Error: Missing QID")
-                    mode = MODE_ERROR
+                    self.setMode(MODE_ERROR)
                 #    
 
             ##############################################
             # OVERRIDE DATA
             ##############################################
-            elif (mode == MODE_OVERRIDES_DATA):
+            elif (self.mode == MODE_OVERRIDES_DATA):
                 
-                if (line == "#INVENTORY"):
-                    mode = MODE_DONE
+                if (line == "#CLASSES"):
+                    self.setMode(MODE_CLASSES_HDR)
                 else:
                     toks = line.split(",")
                     if (len(toks) != 6):
-                        mode = MODE_ERROR
+                        print("A")
+                        self.setMode(MODE_ERROR)
                     else:
                         overrides.append(toks)
                     #    
                 #
 
             ##############################################
-            #
+            # CLASSES HEADER
             ##############################################
-            elif (mode == MODE_ERROR):
-                print("Failed to read")
-                del(quilts)
-                del(racks)
-                del(overrides)
+            elif (self.mode == MODE_CLASSES_HDR):
+
+                if ("Class,Name,Notes" in line):
+                    self.setMode(MODE_CLASSES_DATA)
+                else:    
+                    print("Error: Missing Class")
+                    self.setMode(MODE_ERROR)
+                #    
+
+            ##############################################
+            # CLASSES DATA
+            ##############################################
+            elif (self.mode == MODE_CLASSES_DATA):
+                
+                if (line == "#INI"):
+                    self.setMode(MODE_INI_DATA)
+                else:
+                    toks = line.split(",")
+                    if (len(toks) != 3):
+                        print("D")
+                        self.setMode(MODE_ERROR)
+                    else:
+                        classes.append(toks)
+                    #    
+                #
+
+            ##############################################
+            # INI DATA
+            ##############################################
+            elif (self.mode == MODE_INI_DATA):
+                
+                if (line == "#END"):
+                    self.setMode(MODE_DONE)
+                else:
+                    ini.append(line)
+                #
+
+            ##############################################
+            # An Error happened
+            ##############################################
+            elif (self.mode == MODE_ERROR):
+
+                # Clean up the mess
+                quilts.clear()
+                racks.clear()
+                overrides.clear()
+                classes.clear()
+                ini.clear()
                 retval = False
                 break
 
             ##############################################
-            #
+            # We finished
             ##############################################
-            elif (mode == MODE_DONE):
+            elif (self.mode == MODE_DONE):
                 retval = True
                 break
             #
-        # While
+        # do forever
 
         fp.close()
 
 
-        return retval
-    #
+        return (retval, quilts, racks, overrides, classes, ini)
+    # read
+
+    ####################################################################
+    # Write a file given a set of lists
+    ####################################################################
+    def write(self, fn, quilts, racks, overrides, classes, ini):
+
+        # Assume the operation will fail.
+        retval = False
+
+        # Insure file does not exist
+        if os.path.isfile(fn):
+            return False
+        #
+        
+        fp = open(fn, "w")
+
+        # Write the file header
+        fp.write("#HDQG V1.0\n")
+
+        # Write quilt data
+        fp.write("#QUILTS\n")
+        fp.write("QID,Class,Width,Length,Notes\n")
+        for toks in quilts:
+            s = "%s,%s,%s,%s,%s\n" % (toks[0], toks[1], toks[2], toks[3], toks[4])
+            fp.write(s)
+        #
+
+        # Write racks data
+        fp.write("#RACKS\n")
+        fp.write("RID,Row,Side,Bay,Dxf Bay,Level,SlatW,ActWidth,ActHeight,Left Pole,Right Pole,Class,H-Tol,Notes\n")
+        for toks in racks:
+            s = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" % \
+            (toks[0],
+            toks[1],
+            toks[2],
+            toks[3],
+            toks[4],
+            toks[5],
+            toks[6],
+            toks[7],
+            toks[8],
+            toks[9],
+            toks[10],
+            toks[11],
+            toks[12],
+            toks[13])
+            fp.write(s)
+        #
+
+        # Write override data
+        fp.write("#OVERRIDES\n")
+        fp.write("QID,Row,Side,Bay,Level,Notes\n")
+        for toks in overrides:
+            s = "%s,%s,%s,%s,%s,%s\n" % \
+            (toks[0],
+            toks[1],
+            toks[2],
+            toks[3],
+            toks[4],
+            toks[5])
+            fp.write(s)
+        #
+
+        # Write CLASSES data
+        fp.write("#CLASSES\n")
+        fp.write("Class,Name,Notes\n")
+        for toks in classes:
+            s = "%s,%s,%s\n" % \
+            (toks[0],
+            toks[1],
+            toks[2])
+            fp.write(s)
+        #
+
+        # Write INI data
+        fp.write("#INI\n")
+        for line in ini:
+            s = "%s\n" % line
+            fp.write(s)
+        #
+
+        fp.write("#END\n")
+
+        fp.close()
+
+        return True
+    # read
 #
 
 if __name__ == "__main__":
 
     obj = FileClass()
-    ret = obj.read("Project.hdqg")
-    print(ret)
+    (ret, quilts, racks, overrides, classes, ini) = obj.read("Project.hdqg")
+    print("Read", ret)
+    ret = obj.write("new.hdqg", quilts, racks, overrides, classes, ini)
+    print("Write", ret)
+
 

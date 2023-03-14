@@ -41,32 +41,31 @@ class RacksClass(wx.grid.Grid):
         self.SetColLabelValue(13, "Notes")
 
         # Load file
-        self.LoadFile("Racks.csv")
+        racks = []
+        self.LoadData(racks)
 
     #    
 
 
-    def LoadFile(self, fn):
+    ####################################################################
+    # Load the table from a list of racks
+    ####################################################################
 
-        fp = open(fn, "r")
+    def LoadData(self, racks):
 
-        numRows = 0
-        for line in fp:
-            toks = line.split(",")
-            numRows += 1
-        #
-        fp.close()
-
-        # Resize the grid
-        # TBD
-
-        fp = open(fn, "r")
 
         self.BeginBatch()
 
+        # Nuke the current grid
+        if self.GetNumberRows() != 0:
+            self.DeleteRows(0, self.GetNumberRows())
+
+        # Size for the new grid
+        self.InsertRows(0, len(racks))
+
+
         rowNo = 0
-        for line in fp:
-            toks = line.split(",")
+        for toks in racks:
             self.SetCellValue(rowNo,0,  toks[0])    # ID
             self.SetCellValue(rowNo,1,  toks[1])    # Row
             self.SetCellValue(rowNo,2,  toks[2])    # Side
@@ -83,8 +82,38 @@ class RacksClass(wx.grid.Grid):
             self.SetCellValue(rowNo,13, toks[13])   # Notes
             rowNo += 1
         #
-        fp.close()
         self.EndBatch()
         self.ForceRefresh()
     #
+
+    ####################################################################
+    # Pull data from table
+    ####################################################################
+    def PullData(self):
+
+        data = []
+        toks = [0] * 14
+
+        rows = self.GetNumberRows()
+
+        for iRow in range(rows):
+            toks[0]  = self.GetCellValue(iRow, 0)   # 
+            toks[1]  = self.GetCellValue(iRow, 1)   # 
+            toks[2]  = self.GetCellValue(iRow, 2)   # 
+            toks[3]  = self.GetCellValue(iRow, 3)   # 
+            toks[4]  = self.GetCellValue(iRow, 4)   # 
+            toks[5]  = self.GetCellValue(iRow, 5)   # 
+            toks[6]  = self.GetCellValue(iRow, 6)   # 
+            toks[7]  = self.GetCellValue(iRow, 7)   # 
+            toks[8]  = self.GetCellValue(iRow, 8)   # 
+            toks[9]  = self.GetCellValue(iRow, 9)   # 
+            toks[10] = self.GetCellValue(iRow, 10)  # 
+            toks[11] = self.GetCellValue(iRow, 11)  # 
+            toks[12] = self.GetCellValue(iRow, 12)  # 
+            toks[13] = self.GetCellValue(iRow, 13)  # 
+            data.append(list(toks))
+        #
+        return data
+    #
+
 

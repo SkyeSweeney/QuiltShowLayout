@@ -33,32 +33,27 @@ class OverridesClass(wx.grid.Grid):
         self.SetColLabelValue(5, "Notes")
 
         # Load file
-        self.LoadFile("Overrides.csv")
+        overrides = []
+        self.LoadData(overrides)
 
     #    
 
 
-    def LoadFile(self, fn):
+    def LoadData(self, overrides):
 
-        fp = open(fn, "r")
-
-        numRows = 0
-        for line in fp:
-            toks = line.split(",")
-            numRows += 1
-        #
-        fp.close()
-
-        # Resize the grid
-        # TBD
-
-        fp = open(fn, "r")
 
         self.BeginBatch()
 
+        # Nuke the current grid
+        if self.GetNumberRows() != 0:
+            self.DeleteRows(0, self.GetNumberRows())
+
+        # Size for the new grid
+        self.InsertRows(0, len(overrides))
+
+
         rowNo = 0
-        for line in fp:
-            toks = line.split(",")
+        for toks in overrides:
             self.SetCellValue(rowNo,0, toks[0])   # QID
             self.SetCellValue(rowNo,1, toks[1])   # Row
             self.SetCellValue(rowNo,2, toks[2])   # Side
@@ -67,8 +62,31 @@ class OverridesClass(wx.grid.Grid):
             self.SetCellValue(rowNo,5, toks[5])   # Notes
             rowNo += 1
         #
-        fp.close()
         self.EndBatch()
         self.ForceRefresh()
     #
+
+    ####################################################################
+    # Pull data from table
+    ####################################################################
+    def PullData(self):
+
+        data = []
+        toks = [0] * 6
+
+        rows = self.GetNumberRows()
+
+        rowNo = 0
+        for iRow in range(rows):
+            toks[0] = self.GetCellValue(iRow, 0)   # 
+            toks[1] = self.GetCellValue(iRow, 1)   # 
+            toks[2] = self.GetCellValue(iRow, 2)   # 
+            toks[3] = self.GetCellValue(iRow, 3)   # 
+            toks[4] = self.GetCellValue(iRow, 4)   # 
+            toks[5] = self.GetCellValue(iRow, 5)   # 
+            data.append(list(toks))
+        #
+        return data
+    #
+
 
