@@ -418,7 +418,18 @@ LW-419,18,Back,1,Top,
 LW-435,18,Back,1,Top,
 LC-212,18,Front,1,Top,
 LW-410,18,Front,1,Top,
-#INVENTORY
+#CLASSES
+Class,Name,Notes
+C,Competition,
+V,V,
+XXL,Extra Extra Large,
+XL,Extra Large,
+L,Large,
+M,Medium,
+S,Small,
+T,TTT,
+D,DDD,
+#INI
 [Poles]
 8=10
 9=23
@@ -430,3 +441,4 @@ LW-410,18,Front,1,Top,
 12=10
 [Bases]
 bases=50
+#END
