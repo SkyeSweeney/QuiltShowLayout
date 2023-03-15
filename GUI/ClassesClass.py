@@ -11,6 +11,7 @@ class ClassesClass(wx.grid.Grid):
     # Constructor
     ####################################################################
     def __init__(self, *args, **kw):
+
         super(ClassesClass, self).__init__(*args, **kw)
 
         self.SetLabelBackgroundColour('#DBD4D4')
@@ -24,11 +25,8 @@ class ClassesClass(wx.grid.Grid):
     ####################################################################
     def InitUI(self):
 
-        nOfRows = 0
-        nOfCols = 3
-
-        self.row = self.col = 0
-        self.CreateGrid(nOfRows, nOfCols)
+        self.CreateGrid(1, 3)
+        self.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnCellChanged)
 
         self.SetColLabelSize(40)
         self.SetRowLabelSize(80)
@@ -43,6 +41,13 @@ class ClassesClass(wx.grid.Grid):
         self.LoadData(self.classList)
 
     #    
+
+    ####################################################################
+    # Called when cell changes value
+    ####################################################################
+    def OnCellChanged(self, e):
+        print("Changed")
+     #
 
 
 

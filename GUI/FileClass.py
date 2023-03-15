@@ -14,19 +14,61 @@ class FileClass:
     ####################################################################
     def __init__(self):
         pass
+        self.loaded = False
+        self.modified = False
+        self.fileName = ""
+    #
+
+
+    ####################################################################
+    # Set/clear file modified flag
+    ####################################################################
+    def SetModified(self, b):
+        self.modified = b
     #
 
     ####################################################################
-    # Routine to aid debuging
+    # Get file modified flag
     ####################################################################
-    def setMode(self, mode):
-        #print("Change to mode", mode)
-        self.mode = mode
+    def GetModified(self):
+        return self.modified
+    #
 
+
+    ####################################################################
+    # Set/clear file loaded flag
+    ####################################################################
+    def SetLoaded(self, b):
+        self.loaded = b
+    #
+
+
+    ####################################################################
+    # Get file loaded flag
+    ####################################################################
+    def GetLoaded(self):
+        return self.loaded
+    #
+
+    ####################################################################
+    # Set file name
+    ####################################################################
+    def SetFileName(self, fn):
+        self.fileName = fn
+    #
+
+
+    ####################################################################
+    # Get file name
+    ####################################################################
+    def GetFileName(self):
+        return self.fileName
+    #
 
 
     ####################################################################
     # Read a file and return the results in a tupple of lists
+    # This does NOT load the data into the active storage
     ####################################################################
     def read(self, fn):
 
@@ -243,6 +285,14 @@ class FileClass:
     # read
 
     ####################################################################
+    # Routine to aid debuging
+    ####################################################################
+    def setMode(self, mode):
+        #print("Change to mode", mode)
+        self.mode = mode
+    #    
+
+    ####################################################################
     # Write a file given a set of lists
     ####################################################################
     def write(self, fn, quilts, racks, overrides, classes, ini):
@@ -255,6 +305,7 @@ class FileClass:
             return False
         #
         
+        # Openm the file
         fp = open(fn, "w")
 
         # Write the file header
@@ -326,7 +377,10 @@ class FileClass:
 
         fp.close()
 
+        # If we made it here we stored the file!
+
         return True
+
     # read
 #
 

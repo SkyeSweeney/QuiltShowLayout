@@ -11,6 +11,20 @@ import FileClass
 
 
 
+# Main creates MyApp
+# MyApp creates:
+#       MyFrame
+#       FileIf
+#
+# MyFrame creates
+#       pageQuilts
+#       pageClasses
+#       pageRacks
+#       pageOverrides
+#       pageInventory
+#       pageErrors
+#       pageLayout    
+
 
 
 
@@ -40,6 +54,9 @@ class MyApp(wx.App):
 
         # Main menu object
         menubar = wx.MenuBar()
+
+        # Create the file interface
+        self.FileIf = FileClass.FileClass()
 
         # FILE menu
         fileMenu = wx.Menu()
@@ -82,41 +99,72 @@ class MyApp(wx.App):
     #
 
     ####################################################################
-    #
+    # When a Save happens
     ####################################################################
     def OnSave(self, e):
-        quilts     = self.frame.pageQuilts.PullData()
-        racks      = self.frame.pageRacks.PullData()
-        orverrides = self.frame.pageOverrides.PullData()
-        classes    = self.frame.pageClasses.PullData()
-        fc = FileClass.FileClass()
-        fc.write(self.fn, quilts, racks, overrides, classes, self.ini)
+
+        # If the file loaded and modified?
+        if self.FileIf.GetLoaded():
+
+            if self.FileIf.GetModified():
+                quilts     = self.frame.pageQuilts.PullData()
+                racks      = self.frame.pageRacks.PullData()
+                orverrides = self.frame.pageOverrides.PullData()
+                classes    = self.frame.pageClasses.PullData()
+                fn = self.FileIf.GetFileName()
+                ok = self.FileIf.write(fn, quilts, racks, overrides, classes, self.ini)
+                if not ok:
+                    wx.MessageBox("Unable to save file", "Error",
+                                 wx.ICON_ERROR | wx.OK, self)
+                #    
+            else:    
+                wx.MessageBox("File not modified", "Say What?",
+                             wx.ICON_WARNING | wx.OK, self)
+            #
+        else:
+            wx.MessageBox("No file loaded", "Say What?",
+                         wx.ICON_WARNING | wx.OK, self)
+        #
     #
 
     ####################################################################
-    #
+    # User requests a save as
     ####################################################################
     def OnSaveas(self, e):
 
-        fileDlg = wx.FileDialog(self.frame, 
-                                "Open HDQG file", 
-                                wildcard="HDQG files (*.hdqg)|*.hdqg",
-                                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        ret = fileDlg.ShowModal()
+        # If the file loaded
+        if self.FileIf.GetLoaded():
 
-        if (ret == wx.ID_CANCEL):
-            return
+            fileDlg = wx.FileDialog(self.frame, 
+                                    "Open HDQG file", 
+                                    wildcard="HDQG files (*.hdqg)|*.hdqg",
+                                    style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            ret = fileDlg.ShowModal()
 
-        self.fn = fileDlg.GetPath()
+            if (ret == wx.ID_CANCEL):
+                return
 
-        quilts     = self.frame.pageQuilts.PullData()
-        racks      = self.frame.pageRacks.PullData()
-        overrides  = self.frame.pageOverrides.PullData()
-        classes    = self.frame.pageClasses.PullData()
-        print("aaaa", classes)
-        fc = FileClass.FileClass()
-        fc.write(self.fn, quilts, racks, overrides, classes, self.ini)
-        # TODO INI
+            fn = fileDlg.GetPath()
+
+            quilts     = self.frame.pageQuilts.PullData()
+            racks      = self.frame.pageRacks.PullData()
+            orverrides = self.frame.pageOverrides.PullData()
+            classes    = self.frame.pageClasses.PullData()
+            ok = self.FileIf.write(fn, quilts, racks, overrides, classes, self.ini)
+
+            if not ok:
+                wx.MessageBox("Unable to save file", "Error",
+                             wx.ICON_ERROR | wx.OK, self)
+            else:
+                self.FileIf.setFileNane(fn)
+                self.FileIf.SetModified(False)
+            #
+
+        else:
+            wx.MessageBox("No file loaded", "Say What?",
+                         wx.ICON_WARNING | wx.OK, self)
+        #
+
     #
 
     ####################################################################
@@ -133,15 +181,24 @@ class MyApp(wx.App):
         if (ret == wx.ID_CANCEL):
             return
 
-        self.fn = fileDlg.GetPath()
+        fn = fileDlg.GetPath()
 
-        fc = FileClass.FileClass()
-        (ret, quilts, racks, overrides, classes, self.ini) = fc.read(self.fn)
-        self.frame.pageQuilts.LoadData(quilts)
-        self.frame.pageRacks.LoadData(racks)
-        self.frame.pageOverrides.LoadData(overrides)
-        self.frame.pageClasses.LoadData(classes)
-        # TODO INI
+        (ret, quilts, racks, overrides, classes, self.ini) = self.FileIf.read(fn)
+        if ret == True:
+            self.frame.pageQuilts.LoadData(quilts)
+            self.frame.pageRacks.LoadData(racks)
+            self.frame.pageOverrides.LoadData(overrides)
+            self.frame.pageClasses.LoadData(classes)
+            # TODO INI
+            self.FileIf.SetLoaded(True)
+            self.FileIf.SetModified(False)
+            self.FileIf.SetFileName(fn)
+        else:
+            wx.MessageBox("Unable to open file", "Error",
+                         wx.ICON_ERROR | wx.OK, self)
+        #
+
+
     #
 
     ####################################################################
@@ -172,6 +229,9 @@ class MyFrame(wx.Frame):
         wx.Frame.__init__(self, parent, id, title)
 
         self.SetIcon(wx.Icon('./wxwin.ico', wx.BITMAP_TYPE_ICO))
+
+
+        self.parent = parent
         
         #------------
         
