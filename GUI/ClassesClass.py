@@ -1,6 +1,7 @@
 
 import wx
 import wx.grid
+import Storage
 
 
 #---------------------------------------------------------------------------
@@ -39,14 +40,25 @@ class ClassesClass(wx.grid.Grid):
 
         # Load file
         self.LoadData(self.classList)
+    #
 
-    #    
 
     ####################################################################
     # Called when cell changes value
     ####################################################################
-    def OnCellChanged(self, e):
-        print("Changed")
+    def OnCellChanged(self, event):
+
+        row = event.GetRow()
+        col = event.GetCol()
+        was = event.GetString() # Original value
+        now = self.GetCellValue(row, col) # New value
+        print("Changed", row, col, was, now)
+
+        # Check the validity of the change
+
+        # Mark file as changed
+        Storage.FileIf.SetModified(True)
+
      #
 
 

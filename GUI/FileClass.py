@@ -1,16 +1,17 @@
 
 import os
 import os.path
+import Storage
 
 
 
 ########################################################################
-#
+# File handeling class
 ########################################################################
 class FileClass:
 
     ####################################################################
-    #
+    # Initialization
     ####################################################################
     def __init__(self):
         pass
@@ -25,6 +26,10 @@ class FileClass:
     ####################################################################
     def SetModified(self, b):
         self.modified = b
+        if b:
+            Storage.statusbar.SetStatusText("Modified", 0)
+        else:
+            Storage.statusbar.SetStatusText("Unchanged", 0)
     #
 
     ####################################################################
@@ -55,6 +60,7 @@ class FileClass:
     ####################################################################
     def SetFileName(self, fn):
         self.fileName = fn
+        Storage.statusbar.SetStatusText(fn, 1)
     #
 
 
@@ -300,12 +306,7 @@ class FileClass:
         # Assume the operation will fail.
         retval = False
 
-        # Insure file does not exist
-        if os.path.isfile(fn):
-            return False
-        #
-        
-        # Openm the file
+        # Open the file
         fp = open(fn, "w")
 
         # Write the file header
@@ -384,6 +385,10 @@ class FileClass:
     # read
 #
 
+
+#
+# Test routine
+#
 if __name__ == "__main__":
 
     obj = FileClass()

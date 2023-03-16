@@ -1,5 +1,7 @@
 # sample_one.py
 
+import os
+
 import wx
 import wx.grid
 import QuiltsClass
@@ -8,6 +10,7 @@ import RacksClass
 import InventoryClass
 import OverridesClass
 import FileClass
+import Storage
 
 
 
@@ -37,7 +40,10 @@ class MyApp(wx.App):
     ####################################################################
     def OnInit(self):
 
-        #------------
+
+        # Create the file interface
+        FileIf = FileClass.FileClass()
+        Storage.FileIf = FileIf
 
         self.frame = MyFrame(None, -1, "Hannah Dustin Quilt Guild Layout")
         self.SetTopWindow(self.frame)
@@ -55,9 +61,6 @@ class MyApp(wx.App):
         # Main menu object
         menubar = wx.MenuBar()
 
-        # Create the file interface
-        self.FileIf = FileClass.FileClass()
-
         # FILE menu
         fileMenu = wx.Menu()
         fileItemOpen   = fileMenu.Append(wx.ID_OPEN,   "Open",     "Open a project")
@@ -74,7 +77,6 @@ class MyApp(wx.App):
         menubar.Append(actionMenu, '&Action')
 
         self.frame.SetMenuBar(menubar)
-
 
 
         # Bind menu events
@@ -95,7 +97,15 @@ class MyApp(wx.App):
     #
     ####################################################################
     def OnQuit(self, e):
-        self.frame.Close()
+
+        # If the file loaded and modified?
+        if Storage.FileIf.GetLoaded() and Storage.FileIf.GetModified():
+            wx.MessageBox("File changed but not saved", "Error",
+                          wx.ICON_WARNING | wx.OK)
+            return
+        else:
+            self.frame.Close()
+        #
     #
 
     ####################################################################
@@ -104,26 +114,28 @@ class MyApp(wx.App):
     def OnSave(self, e):
 
         # If the file loaded and modified?
-        if self.FileIf.GetLoaded():
+        if Storage.FileIf.GetLoaded():
 
-            if self.FileIf.GetModified():
+            if Storage.FileIf.GetModified():
                 quilts     = self.frame.pageQuilts.PullData()
                 racks      = self.frame.pageRacks.PullData()
-                orverrides = self.frame.pageOverrides.PullData()
+                overrides  = self.frame.pageOverrides.PullData()
                 classes    = self.frame.pageClasses.PullData()
-                fn = self.FileIf.GetFileName()
-                ok = self.FileIf.write(fn, quilts, racks, overrides, classes, self.ini)
+                fn = Storage.FileIf.GetFileName()
+                ok = Storage.FileIf.write(fn, quilts, racks, overrides, classes, self.ini)
                 if not ok:
                     wx.MessageBox("Unable to save file", "Error",
-                                 wx.ICON_ERROR | wx.OK, self)
+                                 wx.ICON_ERROR | wx.OK)
+                else:
+                    Storage.FileIf.SetModified(False)
                 #    
             else:    
-                wx.MessageBox("File not modified", "Say What?",
-                             wx.ICON_WARNING | wx.OK, self)
+                wx.MessageBox("File not modified", "Error",
+                             wx.ICON_WARNING | wx.OK)
             #
         else:
-            wx.MessageBox("No file loaded", "Say What?",
-                         wx.ICON_WARNING | wx.OK, self)
+            wx.MessageBox("No file loaded", "Error",
+                         wx.ICON_WARNING | wx.OK)
         #
     #
 
@@ -133,7 +145,7 @@ class MyApp(wx.App):
     def OnSaveas(self, e):
 
         # If the file loaded
-        if self.FileIf.GetLoaded():
+        if Storage.FileIf.GetLoaded():
 
             fileDlg = wx.FileDialog(self.frame, 
                                     "Open HDQG file", 
@@ -144,25 +156,32 @@ class MyApp(wx.App):
             if (ret == wx.ID_CANCEL):
                 return
 
+            # Get the supplied file name
             fn = fileDlg.GetPath()
+
+            # Lets make sure it ends in HDQG
+            split = os.path.splitext(fn)
+            print(split)
+            if (split[1] != "hdqg"):
+                fn = fn + ".hdqg"
 
             quilts     = self.frame.pageQuilts.PullData()
             racks      = self.frame.pageRacks.PullData()
-            orverrides = self.frame.pageOverrides.PullData()
+            overrides  = self.frame.pageOverrides.PullData()
             classes    = self.frame.pageClasses.PullData()
-            ok = self.FileIf.write(fn, quilts, racks, overrides, classes, self.ini)
+            ok = Storage.FileIf.write(fn, quilts, racks, overrides, classes, self.ini)
 
             if not ok:
                 wx.MessageBox("Unable to save file", "Error",
-                             wx.ICON_ERROR | wx.OK, self)
+                             wx.ICON_ERROR | wx.OK)
             else:
-                self.FileIf.setFileNane(fn)
-                self.FileIf.SetModified(False)
+                Storage.FileIf.SetFileName(fn)
+                Storage.FileIf.SetModified(False)
             #
 
         else:
-            wx.MessageBox("No file loaded", "Say What?",
-                         wx.ICON_WARNING | wx.OK, self)
+            wx.MessageBox("No file loaded", "Error",
+                         wx.ICON_WARNING | wx.OK)
         #
 
     #
@@ -183,19 +202,19 @@ class MyApp(wx.App):
 
         fn = fileDlg.GetPath()
 
-        (ret, quilts, racks, overrides, classes, self.ini) = self.FileIf.read(fn)
+        (ret, quilts, racks, overrides, classes, self.ini) = Storage.FileIf.read(fn)
         if ret == True:
             self.frame.pageQuilts.LoadData(quilts)
             self.frame.pageRacks.LoadData(racks)
             self.frame.pageOverrides.LoadData(overrides)
             self.frame.pageClasses.LoadData(classes)
             # TODO INI
-            self.FileIf.SetLoaded(True)
-            self.FileIf.SetModified(False)
-            self.FileIf.SetFileName(fn)
+            Storage.FileIf.SetLoaded(True)
+            Storage.FileIf.SetModified(False)
+            Storage.FileIf.SetFileName(fn)
         else:
             wx.MessageBox("Unable to open file", "Error",
-                         wx.ICON_ERROR | wx.OK, self)
+                         wx.ICON_ERROR | wx.OK)
         #
 
 
@@ -228,10 +247,8 @@ class MyFrame(wx.Frame):
         # Call the default initialization routine
         wx.Frame.__init__(self, parent, id, title)
 
-        self.SetIcon(wx.Icon('./wxwin.ico', wx.BITMAP_TYPE_ICO))
+        #self.SetIcon(wx.Icon('./wxwin.ico', wx.BITMAP_TYPE_ICO))
 
-
-        self.parent = parent
         
         #------------
         
@@ -268,8 +285,16 @@ class MyFrame(wx.Frame):
         sizer = wx.BoxSizer()
         sizer.Add(nb, 1, wx.EXPAND)
         pnl.SetSizer(sizer)
+
+
+        Storage.statusbar = self.CreateStatusBar(2)
+        Storage.statusbar.SetStatusText("No file loaded", 0)
+        Storage.statusbar.SetStatusText("aaaa", 1)
     #
+
 #
+
+
 
 # MOVE THESE TO THEIR OWN FILES
 #---------------------------------------------------------------------------
