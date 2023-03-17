@@ -179,6 +179,40 @@ class MyApp(wx.App):
     #
     ####################################################################
     def OnExportQuilts(self, e):
+
+        if Storage.FileIf.GetLoaded():
+
+            fileDlg = wx.FileDialog(self.frame, 
+                                    message="Export to CSV file", 
+                                    defaultDir=".",
+                                    defaultFile="quilts.csv",
+                                    wildcard="CSV files (*.csv)|*.csv",
+                                    style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            ret = fileDlg.ShowModal()
+
+            if (ret == wx.ID_CANCEL):
+                return
+
+            # Get the supplied file name
+            fn = fileDlg.GetPath()
+
+            # Lets make sure it ends in csv
+            split = os.path.splitext(fn)
+            print(split)
+            if (split[1] != ".csv"):
+                fn = fn + ".csv"
+            #    
+
+            fp = open(fn, "w")
+            quilts = Storage.QuiltsC.GetData()
+            Storage.QuiltsC.ExportFile(fp, quilts)
+            fp.close()
+
+        else:
+            wx.MessageBox("No file loaded to export", "Error",
+                         wx.ICON_WARNING | wx.OK)
+        #
+    #
         pass
     #
 
@@ -193,11 +227,38 @@ class MyApp(wx.App):
     #
     ####################################################################
     def OnExportClasses(self, e):
-        fn = "q.csv"
-        fp = open(fn, "w")
-        classes = Storage.ClassesC.GetData()
-        Storage.ClassesC.ExportFile(fp, classes)
-        fp.close()
+
+        if Storage.FileIf.GetLoaded():
+
+            fileDlg = wx.FileDialog(self.frame, 
+                                    message="Export to CSV file", 
+                                    defaultDir=".",
+                                    defaultFile="classes.csv",
+                                    wildcard="CSV files (*.csv)|*.csv",
+                                    style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            ret = fileDlg.ShowModal()
+
+            if (ret == wx.ID_CANCEL):
+                return
+
+            # Get the supplied file name
+            fn = fileDlg.GetPath()
+
+            # Lets make sure it ends in csv
+            split = os.path.splitext(fn)
+            if (split[1] != ".csv"):
+                fn = fn + ".csv"
+            #    
+
+            fp = open(fn, "w")
+            classes = Storage.ClassesC.GetData()
+            Storage.ClassesC.ExportFile(fp, classes)
+            fp.close()
+
+        else:
+            wx.MessageBox("No file loaded to export", "Error",
+                         wx.ICON_WARNING | wx.OK)
+        #
     #
 
     ####################################################################
@@ -275,7 +336,6 @@ class MyApp(wx.App):
 
             # Lets make sure it ends in HDQG
             split = os.path.splitext(fn)
-            print(split)
             if (split[1] != "hdqg"):
                 fn = fn + ".hdqg"
 

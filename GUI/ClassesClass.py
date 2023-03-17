@@ -41,7 +41,7 @@ class ClassesClass(wx.grid.Grid):
         self.data = []
 
         # Load file
-        self.LoadData(self.classList)
+        self.LoadData(self.data)
     #
 
 
@@ -68,7 +68,7 @@ class ClassesClass(wx.grid.Grid):
     ####################################################################
     # Load the table from a list of lines
     ####################################################################
-    def LoadData(self, classes):
+    def LoadData(self, data):
 
         self.BeginBatch()
 
@@ -78,10 +78,10 @@ class ClassesClass(wx.grid.Grid):
         #
 
         # Size for the new grid
-        self.InsertRows(0, len(classes))
+        self.InsertRows(0, len(data))
 
         rowNo = 0
-        for toks in classes:
+        for toks in data:
             self.SetCellValue(rowNo, 0, toks[0])   # Class
             self.SetCellValue(rowNo, 1, toks[1])   # Name
             self.SetCellValue(rowNo, 2, toks[2])   # Notes
@@ -131,34 +131,42 @@ class ClassesClass(wx.grid.Grid):
     # Read the Class section from the HDQG file
     # Does not update the loaded data set
     ####################################################################
-    def ReadSection(self, fp):
+    def ImportFile(self, fp):
 
-        classes = []
+        data = []
 
         # Read the Column header line
         line = fp.readline().strip()
 
         if ("Class,Name,Notes" not in line):
             Storage.Logger.LogError("Missing Class column header")
-            return (False, classes)
+            return (False, data)
         #
 
-        # Read lines till we find the #END token
+        # Read lines till we find the #END token or EOF
         while True:
+
+            # Get next line
             line = fp.readline().strip()
-            if (line == "#END"):
+
+            # End if the END token or EOF
+            if (line == "#END") or (line == ""):
                 break
             #
+
+            # Split into tokens
             toks = line.split(",")
+
+            # Insure we have 3
             if (len(toks) != 3):
                 Storage.Logger.LogError("Invalid number of columns in Class")
                 return (False, [])
             else:
-                classes.append(toks)
+                data.append(toks)
             #
         #    
 
-        return (True, classes)
+        return (True, data)
 
     #
 
@@ -168,14 +176,13 @@ class ClassesClass(wx.grid.Grid):
     # Does not write the #CLASSES or #END tokens
     # Leaves the file open
     ####################################################################
-    def ExportFile(self, fp, classes):
+    def ExportFile(self, fp, data):
 
         # Write header
         fp.write("Class,Name,Notes\n")
 
         # Write data
-        print(classes)
-        for toks in classes:
+        for toks in data:
             s = "%s,%s,%s\n" % \
             (toks[0],
             toks[1],

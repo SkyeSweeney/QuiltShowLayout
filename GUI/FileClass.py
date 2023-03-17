@@ -84,18 +84,14 @@ class FileClass:
         fp = open(fn, "r")
 
         MODE_HDR              = 0
-        MODE_QUILT_START      = 1
-        MODE_QUILT_HDR        = 2
-        MODE_QUILT_DATA       = 3
+        MODE_QUILTS_SECTION   = 1
         MODE_RACKS_START      = 4
         MODE_RACKS_HDR        = 5
         MODE_RACKS_DATA       = 6
         MODE_OVERRIDES_START  = 7
         MODE_OVERRIDES_HDR    = 8
         MODE_OVERRIDES_DATA   = 9
-        MODE_CLASSES_START    = 10
-        MODE_CLASSES_HDR      = 11
-        MODE_CLASSES_DATA     = 12
+        MODE_CLASSES_SECTION  = 10
         MODE_INI_START        = 13
         MODE_INI_DATA         = 14
         MODE_ERROR            = 15
@@ -111,9 +107,10 @@ class FileClass:
 
         while True:
 
-            # Insure the header is right
+            # Read the next line of the file
             line = fp.readline().strip()
-            #Storage.Logger.LogDebug(line)
+            Storage.Logger.LogDebug(line)
+
 
             ########################################
             # FILE HEADER
@@ -121,53 +118,35 @@ class FileClass:
             if (self.mode == MODE_HDR):
 
                 if (line != "#HDQG V1.0"):
-                    Storage.Logger.LogError("Error: Invalid file type")
+                    Storage.Logger.LogError("Invalid file type")
                     self.setMode(MODE_ERROR)
                 else:
-                    self.setMode(MODE_QUILT_START)
+                    self.setMode(MODE_QUILTS_SECTION)
                 #
 
             ##############################################
-            # QUILT START
+            # QUILTS SECTION
             ##############################################
-            elif (self.mode == MODE_QUILT_START):
+            elif (self.mode == MODE_QUILTS_SECTION):
 
-                if (line != "#QUILTS"):
-                    Storage.Logger.LogError("Error: Missing #QUILTS")
-                    self.setMode(MODE_ERROR)
-                else:
-                    self.setMode(MODE_QUILT_HDR)
-                #
+                # If the QUILTS token
+                if (line == "#QUILTS"):
 
-            ##############################################
-            # QUILT HEADER
-            ##############################################
-            elif (self.mode == MODE_QUILT_HDR):
+                    # Read this section of the file
+                    (ok, quilts) = Storage.QuiltsC.ImportFile(fp)
 
-                if ("QID,Class,Width,Length,Notes" in line):
-                    self.setMode(MODE_QUILT_DATA)
-                else:
-                    Storage.Logger.LogError(line)
-                    Storage.Logger.LogError("Error: Missing QID")
-                    self.setMode(MODE_ERROR)
-                #
-
-            ##############################################
-            # QUILT DATA
-            ##############################################
-            elif (self.mode == MODE_QUILT_DATA):
-                
-                if (line == "#END"):
-                    self.setMode(MODE_RACKS_START)
-                else:
-                    toks = line.split(",")
-                    if (len(toks) != 5):
-                        Storage.Logger.LogError("C")
-                        self.setMode(MODE_ERROR)
+                    # If read was OK, go read the next section
+                    if ok:
+                        self.setMode(MODE_RACKS_START)
                     else:
-                        quilts.append(toks)
-                    #    
-                #
+                        Storage.Logger.LogError("Unable to read Quilt")
+                        self.setMode(MODE_ERROR)
+                    #
+                else:
+                    Storage.Logger.LogError("Missing #QUILTS")
+                    self.setMode(MODE_ERROR)
+                #    
+
 
             ##############################################
             # RACKS START
@@ -175,7 +154,7 @@ class FileClass:
             elif (self.mode == MODE_RACKS_START):
 
                 if (line != "#RACKS"):
-                    Storage.Logger.LogError("Error: Missing #RACKS")
+                    Storage.Logger.LogError("Missing #RACKS")
                     self.setMode(MODE_ERROR)
                 else:
                     self.setMode(MODE_RACKS_HDR)
@@ -189,7 +168,7 @@ class FileClass:
                 if ("RID,Row,Side,Bay" in line):
                     self.setMode(MODE_RACKS_DATA)
                 else:    
-                    Storage.Logger.LogError("Error: Missing RID2")
+                    Storage.Logger.LogError("Missing RID2")
                     self.setMode(MODE_ERROR)
 
             ##############################################
@@ -215,7 +194,7 @@ class FileClass:
             elif (self.mode == MODE_OVERRIDES_START):
 
                 if (line != "#OVERRIDES"):
-                    Storage.Logger.LogError("Error: Missing #RACKS")
+                    Storage.Logger.LogError("Missing #RACKS")
                     self.setMode(MODE_ERROR)
                 else:
                     self.setMode(MODE_OVERRIDES_HDR)
@@ -229,7 +208,7 @@ class FileClass:
                 if ("QID,Row,Side,Bay,Level,Notes" in line):
                     self.setMode(MODE_OVERRIDES_DATA)
                 else:    
-                    Storage.Logger.LogError("Error: Missing QID in overrides")
+                    Storage.Logger.LogError("Missing QID in overrides")
                     self.setMode(MODE_ERROR)
                 #    
 
@@ -239,7 +218,7 @@ class FileClass:
             elif (self.mode == MODE_OVERRIDES_DATA):
                 
                 if (line == "#END"):
-                    self.setMode(MODE_CLASSES_START)
+                    self.setMode(MODE_CLASSES_SECTION)
                 else:
                     toks = line.split(",")
                     if (len(toks) != 6):
@@ -253,43 +232,26 @@ class FileClass:
             ##############################################
             # CLASSES START
             ##############################################
-            elif (self.mode == MODE_CLASSES_START):
+            elif (self.mode == MODE_CLASSES_SECTION):
 
-                if (line != "#CLASSES"):
-                    Storage.Logger.LogError("Error: Missing #CLASSES")
-                    self.setMode(MODE_ERROR)
+                # If the Class token
+                if (line == "#CLASSES"):
+
+                    # Read this section of the file
+                    (ok, classes) = Storage.ClassesC.ImportFile(fp)
+
+                    # If read was OK, go read the INI section
+                    if ok:
+                        self.setMode(MODE_INI_START)
+                    else:
+                        Storage.Logger.LogError("Unable to read Classes")
+                        self.setMode(MODE_ERROR)
+                    #
                 else:
-                    self.setMode(MODE_CLASSES_HDR)
-                #
-
-            ##############################################
-            # CLASSES HEADER
-            ##############################################
-            elif (self.mode == MODE_CLASSES_HDR):
-
-                if ("Class,Name,Notes" in line):
-                    self.setMode(MODE_CLASSES_DATA)
-                else:    
-                    Storage.Logger.LogError("Error: Missing Class")
+                    Storage.Logger.LogError("Missing #CLASSES")
                     self.setMode(MODE_ERROR)
                 #    
 
-            ##############################################
-            # CLASSES DATA
-            ##############################################
-            elif (self.mode == MODE_CLASSES_DATA):
-                
-                if (line == "#END"):
-                    self.setMode(MODE_INI_START)
-                else:
-                    toks = line.split(",")
-                    if (len(toks) != 3):
-                        Storage.Logger.LogError("D")
-                        self.setMode(MODE_ERROR)
-                    else:
-                        classes.append(toks)
-                    #    
-                #
 
             ##############################################
             # INI START
@@ -297,7 +259,7 @@ class FileClass:
             elif (self.mode == MODE_INI_START):
 
                 if (line != "#INI"):
-                    Storage.Logger.LogError("Error: Missing #INI")
+                    Storage.Logger.LogError("Missing #INI")
                     self.setMode(MODE_ERROR)
                 else:
                     self.setMode(MODE_INI_DATA)
@@ -335,13 +297,22 @@ class FileClass:
                 retval = True
                 break
             #
+
+
+            # We got an unexpected EOF
+            if line == "":
+                Storage.Logger.LogError("Unexpected EOF")
+                break
+            #
+
         # do forever
 
         fp.close()
 
 
         return (retval, quilts, racks, overrides, classes, ini)
-    # read
+
+    #
 
     ####################################################################
     # Routine to aid debuging
