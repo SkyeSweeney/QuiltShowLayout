@@ -1,4 +1,12 @@
-# sample_one.py
+#! /usr/bin/python
+
+########################################################################
+#
+# Program to aid in the setup of a quit show. It allocates quilt
+# to hangind racks to minimize wasted space and maximize presentation.
+#
+#
+########################################################################
 
 import os
 
@@ -11,6 +19,7 @@ import InventoryClass
 import OverridesClass
 import FileClass
 import Storage
+import Logger
 
 
 
@@ -45,14 +54,26 @@ class MyApp(wx.App):
         FileIf = FileClass.FileClass()
         Storage.FileIf = FileIf
 
+
+        Storage.Logger = Logger.Logger()
+        Storage.Logger.SetDebug(True)
+
         self.frame = MyFrame(None, -1, "Hannah Dustin Quilt Guild Layout")
         self.SetTopWindow(self.frame)
         self.frame.Show(True)
 
 
         # Generate IDs we need
-        self.ID_PLACE_QUILTS = wx.Window.NewControlId()
-        self.ID_GENERATE_DXF = wx.Window.NewControlId()
+        self.ID_PLACE_QUILTS     = wx.Window.NewControlId()
+        self.ID_GENERATE_DXF     = wx.Window.NewControlId()
+        self.ID_IMPORT_QUILTS    = wx.Window.NewControlId()
+        self.ID_IMPORT_RACKS     = wx.Window.NewControlId()
+        self.ID_IMPORT_CLASSES   = wx.Window.NewControlId()
+        self.ID_IMPORT_OVERRIDES = wx.Window.NewControlId()
+        self.ID_EXPORT_QUILTS    = wx.Window.NewControlId()
+        self.ID_EXPORT_RACKS     = wx.Window.NewControlId()
+        self.ID_EXPORT_CLASSES   = wx.Window.NewControlId()
+        self.ID_EXPORT_OVERRIDES = wx.Window.NewControlId()
 
         #---------------------------
         # Create menu
@@ -76,22 +97,115 @@ class MyApp(wx.App):
         actionItemDxf   = actionMenu.Append(self.ID_GENERATE_DXF,  "Generate DXF",   "Generate DXF files")
         menubar.Append(actionMenu, '&Action')
 
+
+        # Import menu
+        importMenu = wx.Menu()
+        importQuilts    = importMenu.Append(self.ID_IMPORT_QUILTS,    "Quilts",    "Import Quilts")
+        importRacks     = importMenu.Append(self.ID_IMPORT_RACKS,     "Racks",     "Import Racks")
+        importClasses   = importMenu.Append(self.ID_IMPORT_CLASSES,   "Classes",   "Import Classes")
+        importOverrides = importMenu.Append(self.ID_IMPORT_OVERRIDES, "Overrides", "Import Overrides")
+        menubar.Append(importMenu, '&Import')
+
+        # Export menu
+        exportMenu = wx.Menu()
+        exportQuilts    = exportMenu.Append(self.ID_EXPORT_QUILTS,    "Quilts",    "Export Quilts")
+        exportRacks     = exportMenu.Append(self.ID_EXPORT_RACKS,     "Racks",     "Export Racks")
+        exportClasses   = exportMenu.Append(self.ID_EXPORT_CLASSES,   "Classes",   "Export Classes")
+        exportOverrides = exportMenu.Append(self.ID_EXPORT_OVERRIDES, "Overrides", "Export Overrides")
+        menubar.Append(exportMenu, '&Export')
+
+
         self.frame.SetMenuBar(menubar)
 
 
         # Bind menu events
+
+        # File menu
         self.Bind(wx.EVT_MENU, self.OnQuit,   fileItemQuit)
         self.Bind(wx.EVT_MENU, self.OnSave,   fileItemSave)
         self.Bind(wx.EVT_MENU, self.OnSaveas, fileItemSaveas)
         self.Bind(wx.EVT_MENU, self.OnOpen,   fileItemOpen)
 
-        self.Bind(wx.EVT_MENU, self.OnPlace, actionItemPlace)
-        self.Bind(wx.EVT_MENU, self.OnDxf,   actionItemDxf)
+        # Action menu
+        self.Bind(wx.EVT_MENU, self.OnPlace,  actionItemPlace)
+        self.Bind(wx.EVT_MENU, self.OnDxf,    actionItemDxf)
+
+        # Import menu
+        self.Bind(wx.EVT_MENU, self.OnImportQuilts,    importQuilts)
+        self.Bind(wx.EVT_MENU, self.OnImportRacks,     importRacks)
+        self.Bind(wx.EVT_MENU, self.OnImportClasses,   importClasses)
+        self.Bind(wx.EVT_MENU, self.OnImportOverrides, importOverrides)
+
+        # Export menu
+        self.Bind(wx.EVT_MENU, self.OnExportQuilts,    exportQuilts)
+        self.Bind(wx.EVT_MENU, self.OnExportRacks,     exportRacks)
+        self.Bind(wx.EVT_MENU, self.OnExportClasses,   exportClasses)
+        self.Bind(wx.EVT_MENU, self.OnExportOverrides, exportOverrides)
 
         self.frame.SetSize((1200, 400))
         self.frame.Centre()
 
         return True
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnImportQuilts(self, e):
+        pass
+    #
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnImportRacks(self, e):
+        pass
+    #
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnImportClasses(self, e):
+        pass
+    #
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnImportOverrides(self, e):
+        pass
+    #
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnExportQuilts(self, e):
+        pass
+    #
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnExportRacks(self, e):
+        pass
+    #
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnExportClasses(self, e):
+        fn = "q.csv"
+        fp = open(fn, "w")
+        classes = Storage.ClassesC.GetData()
+        Storage.ClassesC.ExportFile(fp, classes)
+        fp.close()
+    #
+
+    ####################################################################
+    #
+    ####################################################################
+    def OnExportOverrides(self, e):
+        pass
+    #
 
     ####################################################################
     #
@@ -117,10 +231,10 @@ class MyApp(wx.App):
         if Storage.FileIf.GetLoaded():
 
             if Storage.FileIf.GetModified():
-                quilts     = self.frame.pageQuilts.PullData()
-                racks      = self.frame.pageRacks.PullData()
-                overrides  = self.frame.pageOverrides.PullData()
-                classes    = self.frame.pageClasses.PullData()
+                quilts     = Storage.QuiltsC.PullData()
+                racks      = Storage.RacksC.PullData()
+                overrides  = Storage.OverridesC.PullData()
+                classes    = Storage.ClassesC.PullData()
                 fn = Storage.FileIf.GetFileName()
                 ok = Storage.FileIf.write(fn, quilts, racks, overrides, classes, self.ini)
                 if not ok:
@@ -165,10 +279,10 @@ class MyApp(wx.App):
             if (split[1] != "hdqg"):
                 fn = fn + ".hdqg"
 
-            quilts     = self.frame.pageQuilts.PullData()
-            racks      = self.frame.pageRacks.PullData()
-            overrides  = self.frame.pageOverrides.PullData()
-            classes    = self.frame.pageClasses.PullData()
+            quilts     = Storage.QuiltsC.PullData()
+            racks      = Storage.RacksC.PullData()
+            overrides  = Storage.OverridesC.PullData()
+            classes    = Storage.ClassesC.PullData()
             ok = Storage.FileIf.write(fn, quilts, racks, overrides, classes, self.ini)
 
             if not ok:
@@ -204,10 +318,10 @@ class MyApp(wx.App):
 
         (ret, quilts, racks, overrides, classes, self.ini) = Storage.FileIf.read(fn)
         if ret == True:
-            self.frame.pageQuilts.LoadData(quilts)
-            self.frame.pageRacks.LoadData(racks)
-            self.frame.pageOverrides.LoadData(overrides)
-            self.frame.pageClasses.LoadData(classes)
+            Storage.QuiltsC.LoadData(quilts)
+            Storage.RacksC.LoadData(racks)
+            Storage.OverridesC.LoadData(overrides)
+            Storage.ClassesC.LoadData(classes)
             # TODO INI
             Storage.FileIf.SetLoaded(True)
             Storage.FileIf.SetModified(False)
@@ -259,10 +373,10 @@ class MyFrame(wx.Frame):
         #------------
         
         # Create the page windows as children of the notebook.
-        self.pageQuilts    = QuiltsClass.QuiltsClass(nb)
-        self.pageClasses   = ClassesClass.ClassesClass(nb)
-        self.pageRacks     = RacksClass.RacksClass(nb)
-        self.pageOverrides = OverridesClass.OverridesClass(nb)
+        Storage.QuiltsC    = QuiltsClass.QuiltsClass(nb)
+        Storage.ClassesC   = ClassesClass.ClassesClass(nb)
+        Storage.RacksC     = RacksClass.RacksClass(nb)
+        Storage.OverridesC = OverridesClass.OverridesClass(nb)
         self.pageInventory = InventoryClass.InventoryClass(nb)
         self.pageErrors    = MyPageErrors(nb)
         self.pageLayout    = MyPageLayout(nb)
@@ -270,10 +384,10 @@ class MyFrame(wx.Frame):
         #------------
         
         # Add the pages to the notebook with the label to show on the tab.
-        nb.AddPage(self.pageQuilts,    "Quilts")
-        nb.AddPage(self.pageClasses,   "Classes")
-        nb.AddPage(self.pageRacks,     "Racks")
-        nb.AddPage(self.pageOverrides, "Overrides")
+        nb.AddPage(Storage.QuiltsC,    "Quilts")
+        nb.AddPage(Storage.ClassesC,   "Classes")
+        nb.AddPage(Storage.RacksC,     "Racks")
+        nb.AddPage(Storage.OverridesC, "Overrides")
         nb.AddPage(self.pageInventory, "Inventory")
         nb.AddPage(self.pageErrors,    "Errors")
         nb.AddPage(self.pageLayout,    "Layout")

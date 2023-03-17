@@ -174,6 +174,7 @@ D-805,D,44,65,
 D-806,D,52,60,
 D-807,D,52,70,
 D-808,D,51,63,
+#END
 #RACKS
 RID,Row,Side,Bay,Dxf Bay,Level,SlatW,ActWidth,ActHeight,Left Pole,Right Pole,Class,H-Tol,Notes
 10,1,Back,1,1,Top,8,77,8,8,8,L,1,
@@ -278,6 +279,7 @@ RID,Row,Side,Bay,Dxf Bay,Level,SlatW,ActWidth,ActHeight,Left Pole,Right Pole,Cla
 220,22,Front,1,1,Top,6,64,7,7,7,X,1,Not Used
 230,23,Front,1,1,Top,6,64,3,3,3,C,1,
 240,24,Front,1,1,Top,6,64,3,3,3,T,1,Tuffet
+#END
 #OVERRIDES
 QID,Row,Side,Bay,Level,Notes
 C-508,23,Front,1,Top,3D
@@ -418,6 +420,7 @@ LW-419,18,Back,1,Top,
 LW-435,18,Back,1,Top,
 LC-212,18,Front,1,Top,
 LW-410,18,Front,1,Top,
+#END
 #CLASSES
 Class,Name,Notes
 C,Competition,
@@ -429,6 +432,7 @@ M,Medium,
 S,Small,
 T,TTT,
 D,DDD,
+#END
 #INI
 [Poles]
 8=10

@@ -18,6 +18,7 @@ class ClassesClass(wx.grid.Grid):
         self.SetLabelBackgroundColour('#DBD4D4')
 
         self.InitUI()
+
     #    
 
 
@@ -37,6 +38,7 @@ class ClassesClass(wx.grid.Grid):
         self.SetColLabelValue(2, "Notes")
 
         self.classList = []
+        self.data = []
 
         # Load file
         self.LoadData(self.classList)
@@ -52,7 +54,7 @@ class ClassesClass(wx.grid.Grid):
         col = event.GetCol()
         was = event.GetString() # Original value
         now = self.GetCellValue(row, col) # New value
-        print("Changed", row, col, was, now)
+        Storage.Logger.LogDebug("Changed %d %d <%s> -> <%s>" % (row, col, was, now))
 
         # Check the validity of the change
 
@@ -73,6 +75,7 @@ class ClassesClass(wx.grid.Grid):
         # Nuke the current grid
         if self.GetNumberRows() != 0:
             self.DeleteRows(0, self.GetNumberRows())
+        #
 
         # Size for the new grid
         self.InsertRows(0, len(classes))
@@ -83,6 +86,7 @@ class ClassesClass(wx.grid.Grid):
             self.SetCellValue(rowNo, 1, toks[1])   # Name
             self.SetCellValue(rowNo, 2, toks[2])   # Notes
             self.classList.append(toks[0])
+            self.data.append(toks)
             rowNo += 1
         #
         self.EndBatch()
@@ -114,6 +118,71 @@ class ClassesClass(wx.grid.Grid):
     ####################################################################
     def GetList(self):
         return self.classList
+    #
+
+    ####################################################################
+    # Get loaded data
+    ####################################################################
+    def GetData(self):
+        return self.data
+    #
+
+    ####################################################################
+    # Read the Class section from the HDQG file
+    # Does not update the loaded data set
+    ####################################################################
+    def ReadSection(self, fp):
+
+        classes = []
+
+        # Read the Column header line
+        line = fp.readline().strip()
+
+        if ("Class,Name,Notes" not in line):
+            Storage.Logger.LogError("Missing Class column header")
+            return (False, classes)
+        #
+
+        # Read lines till we find the #END token
+        while True:
+            line = fp.readline().strip()
+            if (line == "#END"):
+                break
+            #
+            toks = line.split(",")
+            if (len(toks) != 3):
+                Storage.Logger.LogError("Invalid number of columns in Class")
+                return (False, [])
+            else:
+                classes.append(toks)
+            #
+        #    
+
+        return (True, classes)
+
+    #
+
+    ####################################################################
+    # Export the Class data to a CSV file
+    # Does not update the loaded data set
+    # Does not write the #CLASSES or #END tokens
+    # Leaves the file open
+    ####################################################################
+    def ExportFile(self, fp, classes):
+
+        # Write header
+        fp.write("Class,Name,Notes\n")
+
+        # Write data
+        print(classes)
+        for toks in classes:
+            s = "%s,%s,%s\n" % \
+            (toks[0],
+            toks[1],
+            toks[2])
+            fp.write(s)
+        #
+
     #
 
 #    
