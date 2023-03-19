@@ -33,7 +33,7 @@ class QuiltsClass(wx.grid.Grid):
         self.CreateGrid(1, 5)
         self.Bind(wx.grid.EVT_GRID_CELL_CHANGED,      self.OnCellChanged)
         self.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, self.OnLabelRightClick)
-        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK,  self.OnRightDown)
+        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK,  self.OnCellRightClick)
 
         self.SetColLabelSize(40)
         self.SetRowLabelSize(80)
@@ -77,17 +77,14 @@ class QuiltsClass(wx.grid.Grid):
     # Right click on row labels
     ####################################################################
     def OnLabelRightClick(self, event):
-        row = event.GetRow()
-
-        self.InsertRows(row, 1)
-        Storage.QuiltsC.modified = True
+        self.OnCellRightClick(event)
     #
 
 
     ####################################################################
     # Right click on a cell
     ####################################################################
-    def OnRightDown(self, event):
+    def OnCellRightClick(self, event):
 
         # Bring up context menu and get selection
         menu = ContextMenu("TTTTT")

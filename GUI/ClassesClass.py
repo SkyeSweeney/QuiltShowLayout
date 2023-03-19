@@ -32,6 +32,8 @@ class ClassesClass(wx.grid.Grid):
 
         self.CreateGrid(1, 3)
         self.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnCellChanged)
+        self.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, self.OnLabelRightClick)
+        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK,  self.OnCellRightClick)
 
         self.SetColLabelSize(40)
         self.SetRowLabelSize(80)
@@ -62,10 +64,57 @@ class ClassesClass(wx.grid.Grid):
         # Check the validity of the change
 
         # Mark file as changed
+        self.modified = True
         Storage.FileIf.SetModified(True)
 
      #
 
+    ####################################################################
+    # Right click on row labels
+    ####################################################################
+    def OnLabelRightClick(self, event):
+        self.OnCellRightClick(event)
+    #
+
+
+    ####################################################################
+    # Right click on a cell
+    ####################################################################
+    def OnCellRightClick(self, event):
+
+        # Bring up context menu and get selection
+        menu = ContextMenu("TTTTT")
+        self.PopupMenu(menu, event.GetPosition())
+        selection = menu.GetSelection()
+        menu.Destroy()
+
+        # Get the selected row
+        row = event.GetRow()
+
+        # No selection
+        if selection == 0:
+            pass
+
+        # Insert row above
+        elif selection == 1:
+            self.InsertRows(row, 1)
+            Storage.QuiltsC.modified = True
+
+        # Insert row bellow
+        elif selection == 2:
+            self.InsertRows(row+1, 1)
+            Storage.QuiltsC.modified = True
+
+        # Delete Row
+        elif selection == 3:
+            self.DeleteRows(row, 1)
+            Storage.QuiltsC.modified = True
+
+        # Undefines    
+        else:
+            Storage.Logger.LogError("Bad case number")
+        #    
+    #
 
 
     ####################################################################
@@ -197,3 +246,37 @@ class ClassesClass(wx.grid.Grid):
 
 #    
 
+class ContextMenu(wx.Menu):
+
+    def __init__(self, WinName):
+        wx.Menu.__init__(self)
+
+        self.WinName = WinName
+        self.selection = 0
+
+        # menu item 1
+        item = wx.MenuItem(self, wx.NewId(), 'Insert Row Above ')
+        self.Append(item)
+        self.Bind(wx.EVT_MENU, self.OnInsertAbove, item)
+
+        # menu item 2
+        item = wx.MenuItem(self, wx.NewId(), 'Insert Row Bellow')
+        self.Append(item)
+        self.Bind(wx.EVT_MENU, self.OnInsertBellow, item)
+
+        # menu item 2
+        item = wx.MenuItem(self, wx.NewId(), 'Delete Row')
+        self.Append(item)
+        self.Bind(wx.EVT_MENU, self.OnDeleteRow, item)
+
+    def GetSelection(self):
+        return self.selection
+
+    def OnInsertAbove(self, event):
+        self.selection = 1
+
+    def OnInsertBellow(self, event):
+        self.selection = 2
+
+    def OnDeleteRow(self, event):
+        self.selection = 3
