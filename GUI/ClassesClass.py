@@ -17,6 +17,9 @@ class ClassesClass(wx.grid.Grid):
 
         self.SetLabelBackgroundColour('#DBD4D4')
 
+        self.loaded = False
+        self.modified = False
+
         self.InitUI()
 
     #    

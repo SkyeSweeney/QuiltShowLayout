@@ -4,7 +4,6 @@
 DXF
 GUI/__pycache__
 
-QuiltList.csv
-RowList.csv
+*.csv
 QuiltList_*
 

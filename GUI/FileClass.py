@@ -14,29 +14,30 @@ class FileClass:
     # Initialization
     ####################################################################
     def __init__(self):
-        pass
-        self.loaded = False
-        self.modified = False
         self.fileName = ""
     #
 
-
     ####################################################################
-    # Set/clear file modified flag
+    # Set file modified flag
     ####################################################################
-    def SetModified(self, b):
-        self.modified = b
-        if b:
-            Storage.statusbar.SetStatusText("Modified", 0)
-        else:
-            Storage.statusbar.SetStatusText("Unchanged", 0)
+    def SetAllModified(self, b):
+        Storage.QuiltsC.modifed = b
+        Storage.RacksC.modifed  = b
+        Storage.ClassesC.modifed  = b
+        Storage.OverridesC.modifed = b
+        return 
     #
+
 
     ####################################################################
     # Get file modified flag
     ####################################################################
-    def GetModified(self):
-        return self.modified
+    def GetAnyModified(self):
+        modified = Storage.QuiltsC.modifed and \
+                   Storage.RacksC.modifed and \
+                   Storage.ClassesC.modifed and \
+                   Storage.OverridesC.modifed
+        return modified
     #
 
 
@@ -85,9 +86,7 @@ class FileClass:
 
         MODE_HDR              = 0
         MODE_QUILTS_SECTION   = 1
-        MODE_RACKS_START      = 4
-        MODE_RACKS_HDR        = 5
-        MODE_RACKS_DATA       = 6
+        MODE_RACKS_SECTION    = 2
         MODE_OVERRIDES_START  = 7
         MODE_OVERRIDES_HDR    = 8
         MODE_OVERRIDES_DATA   = 9
@@ -137,7 +136,7 @@ class FileClass:
 
                     # If read was OK, go read the next section
                     if ok:
-                        self.setMode(MODE_RACKS_START)
+                        self.setMode(MODE_RACKS_SECTION)
                     else:
                         Storage.Logger.LogError("Unable to read Quilt")
                         self.setMode(MODE_ERROR)
@@ -151,42 +150,24 @@ class FileClass:
             ##############################################
             # RACKS START
             ##############################################
-            elif (self.mode == MODE_RACKS_START):
+            elif (self.mode == MODE_RACKS_SECTION):
 
-                if (line != "#RACKS"):
+                if (line == "#RACKS"):
+
+                    # Read this section of the file
+                    (ok, racks) = Storage.RacksC.ImportFile(fp)
+
+                    # If read was OK, go read the next section
+                    if ok:
+                        self.setMode(MODE_OVERRIDES_START)
+                    else:
+                        Storage.Logger.LogError("Unable to read Racks")
+                        self.setMode(MODE_ERROR)
+                    #
+                else:
                     Storage.Logger.LogError("Missing #RACKS")
                     self.setMode(MODE_ERROR)
-                else:
-                    self.setMode(MODE_RACKS_HDR)
-                #
-
-            ##############################################
-            # RACKS HEADER
-            ##############################################
-            elif (self.mode == MODE_RACKS_HDR):
-
-                if ("RID,Row,Side,Bay" in line):
-                    self.setMode(MODE_RACKS_DATA)
-                else:    
-                    Storage.Logger.LogError("Missing RID2")
-                    self.setMode(MODE_ERROR)
-
-            ##############################################
-            # RACKS DATA
-            ##############################################
-            elif (self.mode == MODE_RACKS_DATA):
-                
-                if (line == "#END"):
-                    self.setMode(MODE_OVERRIDES_START)
-                else:
-                    toks = line.split(",")
-                    if (len(toks) != 14):
-                        Storage.Logger.LogError("B")
-                        self.setMode(MODE_ERROR)
-                    else:
-                        racks.append(toks)
-                    #    
-                #
+                #    
 
             ##############################################
             # OVERRIDES START

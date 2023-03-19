@@ -151,27 +151,144 @@ class MyApp(wx.App):
     #
     ####################################################################
     def OnImportQuilts(self, e):
-        pass
+
+        fileDlg = wx.FileDialog(self.frame, 
+                                "Import Quilts CSV file", 
+                                defaultDir=".",
+                                defaultFile="quilts.csv",
+                                wildcard="CSV files (*.csv)|*.csv",
+                                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        ret = fileDlg.ShowModal()
+
+        if (ret == wx.ID_CANCEL):
+            return
+
+        fn = fileDlg.GetPath()
+
+        # Attempt to import the file
+        fp = open(fn, "r")
+        (ok, data) = Storage.QuiltsC.ImportFile(fp)
+        fp.close()
+
+        if ok:
+
+            # Load the table
+            Storage.QuiltsC.LoadData(data)
+            Storage.QuiltsC.modified = False
+            Storage.QuiltsC.loaded = True
+        else:
+            wx.MessageBox("Unable to read file", "Error",
+                         wx.ICON_ERROR | wx.OK)
+        #
+
     #
 
     ####################################################################
     #
     ####################################################################
     def OnImportRacks(self, e):
-        pass
+
+        fileDlg = wx.FileDialog(self.frame, 
+                                "Import Racks CSV file", 
+                                defaultDir=".",
+                                defaultFile="racks.csv",
+                                wildcard="CSV files (*.csv)|*.csv",
+                                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        ret = fileDlg.ShowModal()
+
+        if (ret == wx.ID_CANCEL):
+            return
+
+        fn = fileDlg.GetPath()
+
+        # Attempt to import the file
+        fp = open(fn, "r")
+        (ok, data) = Storage.RacksC.ImportFile(fp)
+        fp.close()
+
+        if ok:
+
+            # Load the table
+            Storage.RacksC.LoadData(data)
+            Storage.RacksC.modified = False
+            Storage.RacksC.loaded = True
+        else:
+            wx.MessageBox("Unable to read file", "Error",
+                         wx.ICON_ERROR | wx.OK)
+        #
+
     #
 
     ####################################################################
     #
     ####################################################################
     def OnImportClasses(self, e):
-        pass
+
+        fileDlg = wx.FileDialog(self.frame, 
+                                "Import Classes CSV file", 
+                                defaultDir=".",
+                                defaultFile="classes.csv",
+                                wildcard="CSV files (*.csv)|*.csv",
+                                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        ret = fileDlg.ShowModal()
+
+        if (ret == wx.ID_CANCEL):
+            return
+
+        fn = fileDlg.GetPath()
+
+        # Attempt to import the file
+        fp = open(fn, "r")
+        (ok, data) = Storage.ClassesC.ImportFile(fp)
+        fp.close()
+
+        if ok:
+
+            # Load the table
+            Storage.ClassesC.LoadData(data)
+            Storage.ClassesC.modified = False
+            Storage.ClassesC.loaded = True
+        else:
+            wx.MessageBox("Unable to read file", "Error",
+                         wx.ICON_ERROR | wx.OK)
+        #
+
     #
 
     ####################################################################
     #
     ####################################################################
     def OnImportOverrides(self, e):
+
+        fileDlg = wx.FileDialog(self.frame, 
+                                "Import Overrides CSV file", 
+                                defaultDir=".",
+                                defaultFile="overrides.csv",
+                                wildcard="CSV files (*.csv)|*.csv",
+                                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        ret = fileDlg.ShowModal()
+
+        if (ret == wx.ID_CANCEL):
+            return
+
+        fn = fileDlg.GetPath()
+
+        # Attempt to import the file
+        fp = open(fn, "r")
+        (ok, data) = Storage.OverridesC.ImportFile(fp)
+        fp.close()
+
+        if ok:
+
+            # Load the table
+            Storage.OverridesC.LoadData(data)
+            Storage.OverridesC.modified = False
+            Storage.OverridesC.loaded = True
+        else:
+            wx.MessageBox("Unable to read file", "Error",
+                         wx.ICON_ERROR | wx.OK)
+        #
+
         pass
     #
 
@@ -198,7 +315,6 @@ class MyApp(wx.App):
 
             # Lets make sure it ends in csv
             split = os.path.splitext(fn)
-            print(split)
             if (split[1] != ".csv"):
                 fn = fn + ".csv"
             #    
@@ -213,14 +329,43 @@ class MyApp(wx.App):
                          wx.ICON_WARNING | wx.OK)
         #
     #
-        pass
-    #
 
     ####################################################################
     #
     ####################################################################
     def OnExportRacks(self, e):
-        pass
+
+        if Storage.FileIf.GetLoaded():
+
+            fileDlg = wx.FileDialog(self.frame, 
+                                    message="Export to CSV file", 
+                                    defaultDir=".",
+                                    defaultFile="racks.csv",
+                                    wildcard="CSV files (*.csv)|*.csv",
+                                    style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            ret = fileDlg.ShowModal()
+
+            if (ret == wx.ID_CANCEL):
+                return
+
+            # Get the supplied file name
+            fn = fileDlg.GetPath()
+
+            # Lets make sure it ends in csv
+            split = os.path.splitext(fn)
+            if (split[1] != ".csv"):
+                fn = fn + ".csv"
+            #    
+
+            fp = open(fn, "w")
+            classes = Storage.RacksC.GetData()
+            Storage.RacksC.ExportFile(fp, classes)
+            fp.close()
+
+        else:
+            wx.MessageBox("No file loaded to export", "Error",
+                         wx.ICON_WARNING | wx.OK)
+        #
     #
 
     ####################################################################
@@ -265,7 +410,38 @@ class MyApp(wx.App):
     #
     ####################################################################
     def OnExportOverrides(self, e):
-        pass
+
+        if Storage.FileIf.GetLoaded():
+
+            fileDlg = wx.FileDialog(self.frame, 
+                                    message="Export to CSV file", 
+                                    defaultDir=".",
+                                    defaultFile="overrides.csv",
+                                    wildcard="CSV files (*.csv)|*.csv",
+                                    style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            ret = fileDlg.ShowModal()
+
+            if (ret == wx.ID_CANCEL):
+                return
+
+            # Get the supplied file name
+            fn = fileDlg.GetPath()
+
+            # Lets make sure it ends in csv
+            split = os.path.splitext(fn)
+            if (split[1] != ".csv"):
+                fn = fn + ".csv"
+            #    
+
+            fp = open(fn, "w")
+            quilts = Storage.OverridesC.GetData()
+            Storage.OverridesC.ExportFile(fp, quilts)
+            fp.close()
+
+        else:
+            wx.MessageBox("No file loaded to export", "Error",
+                         wx.ICON_WARNING | wx.OK)
+        #
     #
 
     ####################################################################
@@ -274,8 +450,8 @@ class MyApp(wx.App):
     def OnQuit(self, e):
 
         # If the file loaded and modified?
-        if Storage.FileIf.GetLoaded() and Storage.FileIf.GetModified():
-            wx.MessageBox("File changed but not saved", "Error",
+        if Storage.FileIf.GetLoaded() and Storage.FileIf.GetAnyModified():
+            wx.MessageBox("Project changed but not saved", "Error",
                           wx.ICON_WARNING | wx.OK)
             return
         else:
@@ -302,7 +478,7 @@ class MyApp(wx.App):
                     wx.MessageBox("Unable to save file", "Error",
                                  wx.ICON_ERROR | wx.OK)
                 else:
-                    Storage.FileIf.SetModified(False)
+                    Storage.FileIf.SetAllModified(False)
                 #    
             else:    
                 wx.MessageBox("File not modified", "Error",
@@ -350,7 +526,7 @@ class MyApp(wx.App):
                              wx.ICON_ERROR | wx.OK)
             else:
                 Storage.FileIf.SetFileName(fn)
-                Storage.FileIf.SetModified(False)
+                Storage.FileIf.SetAllModified(False)
             #
 
         else:
@@ -384,7 +560,7 @@ class MyApp(wx.App):
             Storage.ClassesC.LoadData(classes)
             # TODO INI
             Storage.FileIf.SetLoaded(True)
-            Storage.FileIf.SetModified(False)
+            Storage.FileIf.SetAllModified(False)
             Storage.FileIf.SetFileName(fn)
         else:
             wx.MessageBox("Unable to open file", "Error",

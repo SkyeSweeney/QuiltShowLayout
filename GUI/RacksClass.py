@@ -1,26 +1,33 @@
 
 import wx
 import wx.grid
+import Storage
 
 
 #---------------------------------------------------------------------------
 
 class RacksClass(wx.grid.Grid):
+    ####################################################################
+    # Constructor
+    ####################################################################
     def __init__(self, *args, **kw):
         super(RacksClass, self).__init__(*args, **kw)
 
         self.SetLabelBackgroundColour('#DBD4D4')
 
+        self.loaded = False
+        self.modified = False
+
         self.InitUI()
     #    
 
+    ####################################################################
+    # Init the UI
+    ####################################################################
     def InitUI(self):
 
-        nOfRows = 300
-        nOfCols = 14
-
-        self.row = self.col = 0
-        self.CreateGrid(nOfRows, nOfCols)
+        self.CreateGrid(1, 14)
+        self.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnCellChanged)
 
         self.SetColLabelSize(40)
         self.SetRowLabelSize(80)
@@ -41,31 +48,48 @@ class RacksClass(wx.grid.Grid):
         self.SetColLabelValue(13, "Notes")
 
         # Load file
-        racks = []
-        self.LoadData(racks)
-
-    #    
+        self.data = []
+        self.LoadData(self.data)
+    #
 
 
     ####################################################################
-    # Load the table from a list of racks
+    # Called when cell changes value
     ####################################################################
+    def OnCellChanged(self, event):
 
-    def LoadData(self, racks):
+        row = event.GetRow()
+        col = event.GetCol()
+        was = event.GetString() # Original value
+        now = self.GetCellValue(row, col) # New value
+        Storage.Logger.LogDebug("Changed %d %d <%s> -> <%s>" % (row, col, was, now))
+
+        # Check the validity of the change
+
+        # Mark file as changed
+        Storage.FileIf.SetModified(True)
+
+     #
+
+
+    ####################################################################
+    # Load the table from a list of lines
+    ####################################################################
+    def LoadData(self, data):
 
 
         self.BeginBatch()
-
+            
         # Nuke the current grid
         if self.GetNumberRows() != 0:
             self.DeleteRows(0, self.GetNumberRows())
+        #    
 
         # Size for the new grid
-        self.InsertRows(0, len(racks))
-
+        self.InsertRows(0, len(data))
 
         rowNo = 0
-        for toks in racks:
+        for toks in data:
             self.SetCellValue(rowNo,0,  toks[0])    # ID
             self.SetCellValue(rowNo,1,  toks[1])    # Row
             self.SetCellValue(rowNo,2,  toks[2])    # Side
@@ -80,6 +104,7 @@ class RacksClass(wx.grid.Grid):
             self.SetCellValue(rowNo,11, toks[11])   # Class
             self.SetCellValue(rowNo,12, toks[12])   # H Tolerance
             self.SetCellValue(rowNo,13, toks[13])   # Notes
+            self.data.append(toks)
             rowNo += 1
         #
         self.EndBatch()
@@ -116,4 +141,91 @@ class RacksClass(wx.grid.Grid):
         return data
     #
 
+
+
+    ####################################################################
+    # Get loaded data
+    ####################################################################
+    def GetData(self):
+        return self.data
+    #
+
+    ####################################################################
+    # Read the section from the HDQG file
+    # Does not update the loaded data set
+    ####################################################################
+    def ImportFile(self, fp):
+
+        data = []
+
+        # Read the Column header line
+        line = fp.readline().strip()
+
+        if "RID,Row,Side,Bay,Dxf Bay,Level,SlatW,ActWidth,ActHeight,Left Pole,Right Pole,Class,H-Tol,Notes" not in line:
+            Storage.Logger.LogError("Missing Racks column header")
+            return (False, data)
+        #
+
+        # Read lines till we find the #END token or EOF
+        while True:
+
+            # Get next line
+            line = fp.readline().strip()
+
+            # End if the END token or EOF
+            if (line == "#END") or (line == ""):
+                break
+            #
+
+            # Split into tokens
+            toks = line.split(",")
+
+            # Insure we have 14
+            if (len(toks) != 14):
+                Storage.Logger.LogError("Invalid number of columns in Quilts")
+                return (False, [])
+            else:
+                data.append(toks)
+            #
+        #    
+
+        return (True, data)
+
+    #
+
+    ####################################################################
+    # Export the data to a CSV file
+    # Does not update the loaded data set
+    # Does not write the #CLASSES or #END tokens
+    # Leaves the file open
+    ####################################################################
+    def ExportFile(self, fp, data):
+
+        # Write header
+        fp.write("RID,Row,Side,Bay,Dxf Bay,Level,SlatW,ActWidth,ActHeight,Left Pole,Right Pole,Class,H-Tol,Notes\n")
+
+
+        # Write data
+        for toks in data:
+            s = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n" % \
+            (toks[0],
+            toks[1],
+            toks[2],
+            toks[3],
+            toks[4],
+            toks[5],
+            toks[6],
+            toks[7],
+            toks[8],
+            toks[9],
+            toks[10],
+            toks[11],
+            toks[12],
+            toks[13])
+            fp.write(s)
+        #
+
+    #
+
+#    
 

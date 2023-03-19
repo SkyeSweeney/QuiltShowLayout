@@ -1,26 +1,33 @@
 
 import wx
 import wx.grid
+import Storage
 
 
 #---------------------------------------------------------------------------
 
 class OverridesClass(wx.grid.Grid):
+    ####################################################################
+    # Constructor
+    ####################################################################
     def __init__(self, *args, **kw):
         super(OverridesClass, self).__init__(*args, **kw)
 
         self.SetLabelBackgroundColour('#DBD4D4')
 
+        self.loaded = False
+        self.modified = False
+
         self.InitUI()
     #    
 
+    ####################################################################
+    # Init the UI
+    ####################################################################
     def InitUI(self):
 
-        nOfRows = 400
-        nOfCols = 6
-
-        self.row = self.col = 0
-        self.CreateGrid(nOfRows, nOfCols)
+        self.CreateGrid(1, 6)
+        self.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.OnCellChanged)
 
         self.SetColLabelSize(40)
         self.SetRowLabelSize(80)
@@ -33,33 +40,55 @@ class OverridesClass(wx.grid.Grid):
         self.SetColLabelValue(5, "Notes")
 
         # Load file
-        overrides = []
-        self.LoadData(overrides)
+        self.data = []
+        self.LoadData(self.data)
+    #
 
-    #    
+
+    ####################################################################
+    # Called when cell changes value
+    ####################################################################
+    def OnCellChanged(self, event):
+
+        row = event.GetRow()
+        col = event.GetCol()
+        was = event.GetString() # Original value
+        now = self.GetCellValue(row, col) # New value
+        Storage.Logger.LogDebug("Changed %d %d <%s> -> <%s>" % (row, col, was, now))
+
+        # Check the validity of the change
+
+        # Mark file as changed
+        Storage.FileIf.SetModified(True)
+
+     #
 
 
-    def LoadData(self, overrides):
+    ####################################################################
+    # Load the table from a list of lines
+    ####################################################################
+    def LoadData(self, data):
 
 
         self.BeginBatch()
-
+            
         # Nuke the current grid
         if self.GetNumberRows() != 0:
             self.DeleteRows(0, self.GetNumberRows())
+        #    
 
         # Size for the new grid
-        self.InsertRows(0, len(overrides))
-
+        self.InsertRows(0, len(data))
 
         rowNo = 0
-        for toks in overrides:
+        for toks in data:
             self.SetCellValue(rowNo,0, toks[0])   # QID
             self.SetCellValue(rowNo,1, toks[1])   # Row
             self.SetCellValue(rowNo,2, toks[2])   # Side
             self.SetCellValue(rowNo,3, toks[3])   # Bay
             self.SetCellValue(rowNo,4, toks[4])   # Level
             self.SetCellValue(rowNo,5, toks[5])   # Notes
+            self.data.append(toks)
             rowNo += 1
         #
         self.EndBatch()
@@ -76,7 +105,6 @@ class OverridesClass(wx.grid.Grid):
 
         rows = self.GetNumberRows()
 
-        rowNo = 0
         for iRow in range(rows):
             toks[0] = self.GetCellValue(iRow, 0)   # 
             toks[1] = self.GetCellValue(iRow, 1)   # 
@@ -89,4 +117,83 @@ class OverridesClass(wx.grid.Grid):
         return data
     #
 
+
+
+    ####################################################################
+    # Get loaded data
+    ####################################################################
+    def GetData(self):
+        return self.data
+    #
+
+    ####################################################################
+    # Read the section from the HDQG file
+    # Does not update the loaded data set
+    ####################################################################
+    def ImportFile(self, fp):
+
+        data = []
+
+        # Read the Column header line
+        line = fp.readline().strip()
+
+        if "QID,Row,Side,Bay,Level,Notes" not in line:
+            Storage.Logger.LogError("Missing Overrides column header")
+            return (False, data)
+        #
+
+        # Read lines till we find the #END token or EOF
+        while True:
+
+            # Get next line
+            line = fp.readline().strip()
+
+            # End if the END token or EOF
+            if (line == "#END") or (line == ""):
+                break
+            #
+
+            # Split into tokens
+            toks = line.split(",")
+
+            # Insure we have 6
+            if (len(toks) != 6):
+                Storage.Logger.LogError("Invalid number of columns in Overrides")
+                return (False, [])
+            else:
+                data.append(toks)
+            #
+        #    
+
+        return (True, data)
+
+    #
+
+    ####################################################################
+    # Export the data to a CSV file
+    # Does not update the loaded data set
+    # Does not write the #CLASSES or #END tokens
+    # Leaves the file open
+    ####################################################################
+    def ExportFile(self, fp, data):
+
+        # Write header
+        fp.write("QID,Row,Side,Bay,Level,Notes\n")
+
+
+        # Write data
+        for toks in data:
+            s = "%s,%s,%s,%s,%s,%s\n" % \
+            (toks[0],
+            toks[1],
+            toks[2],
+            toks[3],
+            toks[4],
+            toks[5])
+            fp.write(s)
+        #
+
+    #
+
+#    
 

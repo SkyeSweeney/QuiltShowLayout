@@ -5,7 +5,7 @@
 
 FileIf     = None
 statusbar  = None
-QuiltC     = None
+QuiltsC    = None
 ClassesC   = None
 RacksC     = None
 OverridesC = None
