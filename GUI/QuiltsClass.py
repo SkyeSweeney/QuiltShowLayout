@@ -34,6 +34,7 @@ class QuiltsClass(wx.grid.Grid):
         self.Bind(wx.grid.EVT_GRID_CELL_CHANGED,      self.OnCellChanged)
         self.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, self.OnLabelRightClick)
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK,  self.OnCellRightClick)
+        #self.Bind(wx.grid.EVT_KEY_UP,                 self.OnKeyUp)
 
         self.SetColLabelSize(40)
         self.SetRowLabelSize(80)
@@ -50,6 +51,10 @@ class QuiltsClass(wx.grid.Grid):
         # Load file
         self.LoadData(self.data)
     #
+
+
+    def OnKeyUp(self, event):
+        print("KU")
 
 
 

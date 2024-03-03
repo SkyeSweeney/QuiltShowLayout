@@ -55,7 +55,7 @@ class MyApp(wx.App):
         Storage.FileIf = FileIf
 
 
-        Storage.Logger = Logger.Logger()
+        Storage.Logger = Logger.Logger(self)
         Storage.Logger.SetDebug(True)
 
         self.frame = MyFrame(None, -1, "Hannah Dustin Quilt Guild Layout")
