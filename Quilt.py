@@ -8,11 +8,9 @@
 
 import sys
 import math
-import os
-import dxfwrite
 import argparse
-from dxfwrite import DXFEngine as dxf
 from operator import itemgetter
+from dxfwrite import DXFEngine as dxf
 
 # Columns in the QUILT CSV file
 Q_ID        = 0
@@ -557,7 +555,7 @@ class QuiltApp():
     # Now generate the DXF files for each row
     if (not self.nodxf):
       self.GenerateDxf()
-      self.GeneratePlanView()
+      self.generate_plan_view()
     else:
         print("Skip DXF")
     #
@@ -586,7 +584,7 @@ class QuiltApp():
     if verbose: print("Forcing: %s, " % over[O_QID])
     
     # Get the quilt to force
-    quilt = self.GetQuiltById(over[O_QID])
+    quilt = self.get_quilt_by_id(over[O_QID])
     if (quilt == None):
         print("Warning: QuiltID ", over[O_QID], " not a valid ID in Override file")
         return
@@ -630,7 +628,7 @@ class QuiltApp():
             if (len(rack[R_QUILTS]) > 0):
 
               # Find the size of the first quilt on this slat
-              q = self.GetQuiltById(rack[R_QUILTS][0])
+              q = self.get_quilt_by_id(rack[R_QUILTS][0])
               if q == None:
                 print("  Opps")
                 sys.exit()
@@ -693,7 +691,7 @@ class QuiltApp():
     if verbose: print("Processing: %s, " % quilt[Q_ID])
 
 
-    if self.IsQuiltForced(quilt[Q_ID]):
+    if self.is_quilt_forced(quilt[Q_ID]):
       print("Forced: ", quilt[Q_ID])
       return
 
@@ -722,7 +720,7 @@ class QuiltApp():
             if (len(rack[R_QUILTS]) > 0):
 
               # Find the size of the first quilt on this slat
-              q = self.GetQuiltById(rack[R_QUILTS][0])
+              q = self.get_quilt_by_id(rack[R_QUILTS][0])
               if q == None:
                 print("  Opps")
                 sys.exit()
@@ -734,7 +732,8 @@ class QuiltApp():
               # Is the height of this quilt comperable to the others?
               percent = rack[R_TOLERANCE]
               if (math.fabs(quilt[Q_HEIGHT] - h)/h > percent):
-                if verbose: print("  Not similar %d %d" % (quilt[Q_HEIGHT], h))
+                if verbose: 
+                  print("  Not similar %d %d" % (quilt[Q_HEIGHT], h))
                 continue
               #
 
@@ -761,16 +760,16 @@ class QuiltApp():
             break
 
           else:
-            if verbose: print("  Not high enough")
-            pass
+            if verbose: 
+              print("  Not high enough")
           #
         else:
-          if verbose: print("  Not wide enough")
-          pass
+          if verbose: 
+            print("  Not wide enough")
         #
       else:
-        if verbose: print("  Not right class" )
-        pass
+        if verbose: 
+          print("  Not right class" )
       #  
     # end racks
 
@@ -783,9 +782,9 @@ class QuiltApp():
 
 
   #####################################################################
-  # Generate the DXF files for each row
   #####################################################################
   def GenerateDxf(self):
+    """ Generate the DXF files for each row """
 
     print("Generating DXF files")
 
@@ -793,7 +792,7 @@ class QuiltApp():
     gap     = 1      # gap between quilt
     advance = 12*12  # Amount to advance down the page for each row
     pw      = 2      # Poles are two inches wide
-    maxTs   = 5.0
+    max_ts   = 5.0
 
     # Set a last value that will be different on first pass
     last = self.racks[len(self.racks)-1]
@@ -802,8 +801,8 @@ class QuiltApp():
     master = dxf.drawing("./DXF/Master.dxf")
 
     # Where to start on the page
-    xOrg = 0
-    yOrg = advance   # Start up a bit as we drop down first before printing
+    x_org = 0
+    y_org = advance   # Start up a bit as we drop down first before printing
 
     name = None
 
@@ -811,18 +810,19 @@ class QuiltApp():
     for rack in self.racks:
 
       # Skip if Class is X (exclude)
-      if (rack[R_CLASS] == 'X'): continue
+      if (rack[R_CLASS] == 'X'): 
+        continue
 
       # If we changed rows/sides
       if (rack[R_ROW] != last[R_ROW]) or (rack[R_SIDE] != last[R_SIDE]):
 
         # Close last file
-        if (name != None):
+        if name is not None:
 
           # Add row Width
-          s = "L=%d'%d\"" % (lastWidth/12, lastWidth%12)
-          sheet.add(dxf.text(s, (90, yOrg-10), height = 4.0))
-          master.add(dxf.text(s, (90, yOrg-10), height = 4.0))
+          txt = "L=%d'%d\"" % (lastWidth/12, lastWidth%12)
+          sheet.add(dxf.text(txt, (90, y_org-10), height = 4.0))
+          master.add(dxf.text(txt, (90, y_org-10), height = 4.0))
 
           # Save the sheet
           sheet.save()
@@ -836,13 +836,13 @@ class QuiltApp():
 
 
         # Reset sheet variables
-        xOrg = 0
-        yOrg = yOrg - advance   # Advance down the page
+        x_org = 0
+        y_org = y_org - advance   # Advance down the page
 
         # Add row name
-        s = "ROW: " + str(rack[R_ROW]) + '-' + rack[R_SIDE]
-        sheet.add (dxf.text(s, (2, yOrg-10), height = 7.0))
-        master.add(dxf.text(s, (2, yOrg-10), height = 7.0))
+        txt = "ROW: " + str(rack[R_ROW]) + '-' + rack[R_SIDE]
+        sheet.add (dxf.text(txt, (2, y_org-10), height = 7.0))
+        master.add(dxf.text(txt, (2, y_org-10), height = 7.0))
 
 
       # Same row/side
@@ -852,7 +852,7 @@ class QuiltApp():
         if (rack[self.R_BAY] != last[self.R_BAY]):
 
           # Point to next bay's origin
-          xOrg = xOrg + last[R_RWIDTH] + pw
+          x_org = x_org + last[R_RWIDTH] + pw
         #
 
       #
@@ -873,89 +873,90 @@ class QuiltApp():
       #
 
       # Draw left pole
-      sheet.add(dxf.rectangle((xOrg, yOrg) , -pw, lp))
-      master.add(dxf.rectangle((xOrg, yOrg) , -pw, lp))
+      sheet.add(dxf.rectangle((x_org, y_org) , -pw, lp))
+      master.add(dxf.rectangle((x_org, y_org) , -pw, lp))
 
       # Annotate height
-      s = "%d'" % (rack[R_LEFT])
-      sheet.add(dxf.text(s, (xOrg-pw, yOrg+lp+2), height = 4.0))
-      master.add(dxf.text(s, (xOrg-pw, yOrg+lp+2), height = 4.0))
+      txt = "%d'" % (rack[R_LEFT])
+      sheet.add(dxf.text(txt, (x_org-pw, y_org+lp+2), height = 4.0))
+      master.add(dxf.text(txt, (x_org-pw, y_org+lp+2), height = 4.0))
 
       # Draw right pole
-      sheet.add(dxf.rectangle((xOrg+rack[R_RWIDTH], yOrg) , pw, rp))
-      master.add(dxf.rectangle((xOrg+rack[R_RWIDTH], yOrg) , pw, rp))
+      sheet.add(dxf.rectangle((x_org+rack[R_RWIDTH], y_org) , pw, rp))
+      master.add(dxf.rectangle((x_org+rack[R_RWIDTH], y_org) , pw, rp))
 
       # Annotate height
-      lastWidth = xOrg+rack[R_RWIDTH]+pw+pw
-      s = "%d'" % (rack[R_RIGHT])
-      sheet.add(dxf.text(s, (xOrg+rack[R_RWIDTH], yOrg+rp+2), height = 4.0))
-      master.add(dxf.text(s, (xOrg+rack[R_RWIDTH], yOrg+rp+2), height = 4.0))
+      lastWidth = x_org+rack[R_RWIDTH]+pw+pw
+      txt = "%d'" % (rack[R_RIGHT])
+      sheet.add(dxf.text(txt, (x_org+rack[R_RWIDTH], y_org+rp+2), height = 4.0))
+      master.add(dxf.text(txt, (x_org+rack[R_RWIDTH], y_org+rp+2), height = 4.0))
 
       # Add a gap between quilt
-      x = xOrg + gap
+      x_pos = x_org + gap
 
       # If bay/level is empty
       if (len(rack[R_QUILTS]) != 0):
 
         # Annotate slat length
-        s = str(rack[R_SWIDTH]) + "'"
-        sheet.add (dxf.text(s, (xOrg+rack[R_RWIDTH]/2, yOrg+sh+2), height = 4.0))
-        master.add(dxf.text(s, (xOrg+rack[R_RWIDTH]/2, yOrg+sh+2), height = 4.0))
+        txt = str(rack[R_SWIDTH]) + "'"
+        sheet.add (dxf.text(txt, (x_org+rack[R_RWIDTH]/2, y_org+sh+2), height = 4.0))
+        master.add(dxf.text(txt, (x_org+rack[R_RWIDTH]/2, y_org+sh+2), height = 4.0))
 
-        # For each quilt
+        # For each quilt id on the rack
         for qid in rack[R_QUILTS]:
 
-          q = self.GetQuiltById(qid)
+          # Get the quilt from its ID  
+          quilt = self.get_quilt_by_id(qid)
 
           # Draw quilts
-          sheet.add(dxf.rectangle((x, yOrg+sh) , q[Q_WIDTH], -q[Q_HEIGHT]))
-          master.add(dxf.rectangle((x, yOrg+sh) , q[Q_WIDTH], -q[Q_HEIGHT]))
+          sheet.add(dxf.rectangle((x_pos, y_org+sh) , quilt[Q_WIDTH], -quilt[Q_HEIGHT]))
+          master.add(dxf.rectangle((x_pos, y_org+sh) , quilt[Q_WIDTH], -quilt[Q_HEIGHT]))
 
-          if (q[Q_WIDTH] > len(q[Q_ID])*maxTs):
+          if (quilt[Q_WIDTH] > len(quilt[Q_ID])*max_ts):
             ang = 0.0
-            xt = x+2
-            yt = yOrg+sh-7
-            ts = maxTs
+            x_txt = x_pos+2
+            yt = y_org+sh-7
+            ts = max_ts
 
           else:
 
             ang = 0.0
-            xt = x+2
-            yt = yOrg+sh-7
-            ts = q[Q_WIDTH]/(len(q[Q_ID])+1)
-            if (q[Q_HEIGHT] < ts):
-              ts = q[Q_HEIGHT]
-            if (ts > maxTs): ts = maxTs
+            x_txt = x_pos+2
+            yt = y_org+sh-7
+            ts = quilt[Q_WIDTH]/(len(quilt[Q_ID])+1)
+            if (quilt[Q_HEIGHT] < ts):
+              ts = quilt[Q_HEIGHT]
+            ts = min(ts, max_ts)
           #
 
           # Draw quilt text
-          t = q[Q_ID]
-          sheet.add (dxf.text(t, (xt, yt), height = ts, rotation=ang))
-          master.add(dxf.text(t, (xt, yt), height = ts, rotation=ang))
+          txt = quilt[Q_ID]
+          sheet.add (dxf.text(txt, (x_txt, yt), height = ts, rotation=ang))
+          master.add(dxf.text(txt, (x_txt, yt), height = ts, rotation=ang))
 
           # Print details on the quilt
           if (not self.nodetail):
 
-            t = str(q[Q_WIDTH])
-            sheet.add (dxf.text(t, (xt, yt-ts-1), height = ts, rotation=ang))
-            master.add(dxf.text(t, (xt, yt-ts-1), height = ts, rotation=ang))
+            txt = str(quilt[Q_WIDTH])
+            sheet.add (dxf.text(txt, (x_txt, yt-ts-1), height = ts, rotation=ang))
+            master.add(dxf.text(txt, (x_txt, yt-ts-1), height = ts, rotation=ang))
 
-            t = str(q[Q_HEIGHT])
-            sheet.add (dxf.text(t, (xt, yt-ts-1-ts-1), height = ts, rotation=ang))
-            master.add (dxf.text(t, (xt, yt-ts-1-ts-1), height = ts, rotation=ang))
+            txt = str(quilt[Q_HEIGHT])
+            sheet.add (dxf.text(txt, (x_txt, yt-ts-1-ts-1), height = ts, rotation=ang))
+            master.add (dxf.text(txt, (x_txt, yt-ts-1-ts-1), height = ts, rotation=ang))
 
-            if self.IsQuiltForced(q[Q_ID]):
-                f = "*"
+            if self.is_quilt_forced(quilt[Q_ID]):
+                force_flag = "*"
             else:
-                f = ""
+                force_flag = ""
             #
-            t = "%d%s%d%s%s" % (rack[R_ROW],rack[R_SIDE][0],rack[R_RBAY],rack[R_LEVEL][0],f)
-            sheet.add (dxf.text(t, (xt, yt-ts-1-ts-1-ts-1), height = ts, rotation=ang))
-            master.add(dxf.text(t, (xt, yt-ts-1-ts-1-ts-1), height = ts, rotation=ang))
+            txt = "%d%s%d%s%s" % (rack[R_ROW],rack[R_SIDE][0],rack[R_RBAY],rack[R_LEVEL][0],force_flag)
+            sheet.add (dxf.text(txt, (x_txt, yt-ts-1-ts-1-ts-1), height = ts, rotation=ang))
+            master.add(dxf.text(txt, (x_txt, yt-ts-1-ts-1-ts-1), height = ts, rotation=ang))
           #
 
           # Move over width of quilt plus gap
-          x = x + q[Q_WIDTH] + gap
+          x_pos = x_pos + quilt[Q_WIDTH] + gap
 
         #
 
@@ -968,9 +969,9 @@ class QuiltApp():
     #
 
     # Add row Width
-    s = "L=%d'%d\"" % (lastWidth/12, lastWidth%12)
-    sheet.add(dxf.text(s, (90, yOrg-10), height = 4.0))
-    master.add(dxf.text(s, (90, yOrg-10), height = 4.0))
+    txt = "L=%d'%d\"" % (lastWidth/12, lastWidth%12)
+    sheet.add(dxf.text(txt, (90, y_org-10), height = 4.0))
+    master.add(dxf.text(txt, (90, y_org-10), height = 4.0))
 
     # Save the sheet
     sheet.save()
@@ -979,52 +980,53 @@ class QuiltApp():
   #
 
   #####################################################################
-  # Generate PlanView DXF file
-  # This generates a DXF that can be cut and pasted into the Lion's hall
-  # floor plan drawing.
   #####################################################################
-  def GeneratePlanView(self):
+  def generate_plan_view(self):
+    """ Generate PlanView DXF file
+       This generates a DXF that can be cut and pasted into the Lion's hall
+       floor plan drawing. """
 
-    SF = 1.0/12.0   # Scale factor
+    scale_factor = 1.0/12.0   # Scale factor
 
     print("Generating PlanView DXF file")
 
     # Define some constants
-    advance = 150*SF    # Amount to advance down the page for each row
-    pw      = 2*SF      # Poles are two inches wide
+    advance = 150*scale_factor    # Amount to advance down the page for each row
+    pw      = 2*scale_factor      # Poles are two inches wide
     hpw     = (pw/2)    # Poles are two inches wide
-    bd      = 22.0*SF
+    bd      = 22.0*scale_factor
     br      = bd/2.0
 
     # Set a last value that will be different on first pass
     last = self.racks[len(self.racks)-1]
 
     # Open the PlanView file
-    planView = dxf.drawing("./DXF/PlanView.dxf")
-    planView.add_style("ARIAL_BOLD")
+    plan_view = dxf.drawing("./DXF/PlanView.dxf")
+    plan_view.add_style("ARIAL_BOLD")
 
     # Where to start on the page
-    xOrg = 0
-    yOrg = advance   # Start up a bit as we drop down first before printing
+    x_org = 0
+    y_org = advance   # Start up a bit as we drop down first before printing
 
-    name = None
+    #name = None
 
     # For each rack
     for rack in self.racks:
 
       # Skip if Class is X (exclude)
-      if (rack[R_CLASS] == 'X'): continue
+      if (rack[R_CLASS] == 'X'): 
+        continue
 
       # If we changed rows
       if (rack[R_ROW] != last[R_ROW]):
            
         # Reset sheet variables
-        xOrg = 0
-        yOrg = yOrg - advance   # Advance down the page
+        x_org = 0
+        y_org = y_org - advance   # Advance down the page
 
         # Add row name
-        s = "%d" % rack[R_ROW]
-        planView.add(dxf.text(s, (36*SF, yOrg-0*SF), height = 2.0))
+        txt = "%d" % rack[R_ROW]
+        plan_view.add(dxf.text(txt, (36*scale_factor, y_org-0*scale_factor), height = 2.0))
 
       # Same row
       else:
@@ -1033,7 +1035,7 @@ class QuiltApp():
         if (rack[self.R_BAY] != last[self.R_BAY]):
 
           # Point to next bay's origin
-          xOrg = xOrg - (last[R_RWIDTH]*SF + pw)
+          x_org = x_org - (last[R_RWIDTH]*scale_factor + pw)
         #
 
       #
@@ -1041,35 +1043,35 @@ class QuiltApp():
       if (rack[R_SIDE] != last[R_SIDE]):
 
         # Reset sheet variables
-        xOrg = 0
+        x_org = 0
       #
 
       # Draw the two poles and the line between them
-      planView.add(dxf.rectangle((xOrg-br, yOrg-br), bd, bd))
-      planView.add(dxf.rectangle((xOrg-rack[R_RWIDTH]*SF-br, yOrg-br), bd,bd))
-      planView.add(dxf.line((xOrg,yOrg), (xOrg-rack[R_RWIDTH]*SF,yOrg)))
+      plan_view.add(dxf.rectangle((x_org-br, y_org-br), bd, bd))
+      plan_view.add(dxf.rectangle((x_org-rack[R_RWIDTH]*scale_factor-br, y_org-br), bd,bd))
+      plan_view.add(dxf.line((x_org,y_org), (x_org-rack[R_RWIDTH]*scale_factor,y_org)))
 
       # Annotage the poles heights
-      s = "%d'" % (rack[R_LEFT])
-      planView.add(dxf.text(s, (xOrg+hpw, yOrg+13*SF), height = 1.5))
-      s = "%d'" % (rack[R_RIGHT])
-      planView.add(dxf.text(s, (xOrg-rack[R_RWIDTH]*SF-hpw, yOrg+13*SF), height = 1.5))
+      txt = "%d'" % (rack[R_LEFT])
+      plan_view.add(dxf.text(txt, (x_org+hpw, y_org+13*scale_factor), height = 1.5))
+      txt = "%d'" % (rack[R_RIGHT])
+      plan_view.add(dxf.text(txt, (x_org-rack[R_RWIDTH]*scale_factor-hpw, y_org+13*scale_factor), height = 1.5))
 
       # Annotate the slat and actual widths
-      s = "%d'" % (rack[R_SWIDTH])
+      txt = "%d'" % (rack[R_SWIDTH])
       if (rack[R_SIDE] == "Front"):
           if (rack[R_LEVEL] == "Top"):
-            yOff = 0.5
+            y_off = 0.5
           else:
-            yOff = 2.0
+            y_off = 2.0
       else:
           if (rack[R_LEVEL] == "Top"):
-            yOff = -1.5
+            y_off = -1.5
           else:
-            yOff = -3.0
+            y_off = -3.0
           #
       #
-      planView.add(dxf.text(s, (xOrg-rack[R_RWIDTH]*SF/2, yOrg+yOff), height = 1.0))
+      plan_view.add(dxf.text(txt, (x_org-rack[R_RWIDTH]*scale_factor/2, y_org+y_off), height = 1.0))
 
       # Save last values
       last = rack
@@ -1077,27 +1079,28 @@ class QuiltApp():
     #
 
     # Save the sheet
-    planView.save()
+    plan_view.save()
 
 
   #
 
   #####################################################################
-  # Get a single quilts information by its ID
   #####################################################################
-  def GetQuiltById(self, qid):
-    for q in self.quilts:
-      if (q[Q_ID] == qid):
-        return q
+  def get_quilt_by_id(self, qid):
+    """ Get a single quilts information by its ID """
+    for quilt in self.quilts:
+      if (quilt[Q_ID] == qid):
+        return quilt
       #
     #
     return None
   #
 
   #####################################################################
-  # Return True if the quilt is forced
   #####################################################################
-  def IsQuiltForced(self, qid):
+  def is_quilt_forced(self, qid):
+    """ Return True if the quilt is forced """
+
     for over in self.overrides:
       if (over[O_QID] == qid):
         return True
@@ -1110,13 +1113,16 @@ class QuiltApp():
 
 
 #####################################################################
-# Main
+# Main entry point
 #####################################################################
 if __name__ == "__main__":
 
 
   # Create a quilt object
-  q = QuiltApp()
+  obj = QuiltApp()
 
   # Start processing
-  q.Process()
+  obj.Process()
+
+
+# end of gile
