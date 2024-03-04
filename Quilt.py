@@ -125,10 +125,10 @@ class QuiltApp():
         self.overrides = []
 
         if not self.left_to_right:
-            self.R_BAY = R_DXFBAY   # Print back to back
+            self.right_bay = R_DXFBAY   # Print back to back
             print("Printing back to back")
         else:
-            self.R_BAY = R_RBAY     # Print for printed labels
+            self.right_bay = R_RBAY     # Print for printed labels
             print("Printing left to right")
         #
     #
@@ -160,7 +160,7 @@ class QuiltApp():
 
             # Allow for commenting out a quilt
             if toks[0][0:1] == '#':
-                print("Quilt %s commented out" % toks[0])
+                print(f"Quilt {toks[0]} commented out")
                 continue
             #
 
@@ -171,7 +171,7 @@ class QuiltApp():
                                     float(toks[Q_HEIGHT]),
                                     0])  # Slat
             except:
-                print("Error on Quilts line %d" % line_num)
+                print(f"Error on Quilts line {line_num}")
             #
             line_num = line_num + 1
         #
@@ -227,18 +227,18 @@ class QuiltApp():
                 self.racks.append(rack)
 
             except:
-                print("Error: Conversion error in Racks line %d" % line_num)
+                print(f"Error: Conversion error in Racks line {line_num}")
                 sys.exit(1)
             #
 
             # Sanity check items
             if (rack[R_SIDE] != 'Front') and (rack[R_SIDE] != 'Back'):
-                print("Error: Bad side name in Racks line %d" % line_num)
+                print(f"Error: Bad side name in Racks line {line_num}")
                 sys.exit(1)
             #
 
             if (rack[R_LEVEL] != 'Top') and (rack[R_LEVEL] != 'Mid'):
-                print("Error: Bad level name in Racks line %d" % line_num)
+                print(f"Error: Bad level name in Racks line {line_num}")
                 sys.exit()
             #
 
@@ -278,18 +278,18 @@ class QuiltApp():
                 self.overrides.append(over)
 
             except:
-                print("Error: Conversion error in Overrides line %d" % line_num)
+                print(f"Error: Conversion error in Overrides line {line_num}")
                 sys.exit(1)
             #
 
             # Sanity check items
             if (over[O_SIDE] != 'Front') and (over[O_SIDE] != 'Back'):
-                print("Error: Bad side name in Overrides line %d" % line_num)
+                print(f"Error: Bad side name in Overrides line {line_num}")
                 sys.exit(1)
             #
 
             if (over[O_LEVEL] != 'Top') and (over[O_LEVEL] != 'Mid'):
-                print("Error: Bad level name in Overrides line %d" % line_num)
+                print(f"Error: Bad level name in Overrides line {line_num}")
                 sys.exit()
             #
 
@@ -317,7 +317,7 @@ class QuiltApp():
         for rack in self.racks:
             for qid in rack[R_QUILTS]:
                 temp.append((qid, rack[R_ROW], rack[R_SIDE],
-                            rack[self.R_BAY], rack[R_LEVEL]))
+                            rack[self.right_bay], rack[R_LEVEL]))
             #
         #
 
@@ -326,8 +326,8 @@ class QuiltApp():
 
         # Print list
         for i in temp:
-            txt = "%s, %d, %s, %d, %s" % (i[0], i[1], i[2], i[3], i[4])
-            fp_quilt_list.write(txt+'\n')
+            txt = f"{i[0]}, {i[1]}, {i[2]}, {i[3]}, {i[4]}\n"
+            fp_quilt_list.write(txt)
         #
 
         fp_quilt_list.close()
@@ -353,7 +353,7 @@ class QuiltApp():
         for rack in self.racks:
             for qid in rack[R_QUILTS]:
                 temp.append((qid, rack[R_ROW], rack[R_SIDE],
-                            rack[self.R_BAY], rack[R_LEVEL]))
+                            rack[self.right_bay], rack[R_LEVEL]))
             #
         #
 
@@ -362,8 +362,8 @@ class QuiltApp():
 
         # Print list
         for i in temp:
-            txt = "%d, %s, %d, %s, %s" % (i[1], i[2], i[3], i[4], i[0])
-            fp_row_list.write(txt+'\n')
+            txt = f"{i[1]}, {i[2]}, {i[3]}, {i[4]}, {i[0]}\n"
+            fp_row_list.write(txt)
         #
 
         fp_row_list.close()
@@ -476,7 +476,7 @@ class QuiltApp():
             else:
 
                 # If we changed bays
-                if rack[self.R_BAY] != last[self.R_BAY]:
+                if rack[self.right_bay] != last[self.right_bay]:
 
                     # Add right pole
                     if rack[R_SIDE] == 'Front':
@@ -505,7 +505,7 @@ class QuiltApp():
             elif extra == 1:
                 msg = "(CAUTION, ONLY 1 SPARE)"
             elif extra < 0:
-                msg = "(ERROR: %d TOO MANY ALLOCATED)" % (-extra)
+                msg = f"(ERROR: {-extra} TOO MANY ALLOCATED)"
             else:
                 msg = ""
             #
@@ -547,7 +547,7 @@ class QuiltApp():
     def process(self):
         """ Do the whole process """
 
-        Verbose = False
+        verbose = False
 
         # Read in quilts and racks
         self.read_quilts()
@@ -559,12 +559,12 @@ class QuiltApp():
 
         # First assign all overrides
         for over in self.overrides:
-            self.force(over, Verbose)
+            self.force(over, verbose)
         #
 
         # Assign each quilt to a rack
         for quilt in self.quilts:
-            self.assign(quilt, Verbose)
+            self.assign(quilt, verbose)
         #
 
         # Look for quilts that were not assigned
@@ -572,7 +572,7 @@ class QuiltApp():
         # Sort racks by row, then side, then bay, then level
         # The bay is selected as l2r or dxf
         self.racks = sorted(self.racks,
-                            key=itemgetter(R_ROW, R_SIDE, self.R_BAY, R_LEVEL),
+                            key=itemgetter(R_ROW, R_SIDE, self.right_bay, R_LEVEL),
                             reverse=False)
 
         # Now generate the DXF files for each row
@@ -603,13 +603,12 @@ class QuiltApp():
         found = False
 
         if verbose:
-            print("Forcing: %s, " % over[O_QID])
+            print(f"Forcing: {over[O_QID]}")
 
         # Get the quilt to force
         quilt = self.get_quilt_by_id(over[O_QID])
         if quilt is None:
-            print("Warning: QuiltID ", over[O_QID],
-                  " not a valid ID in Override file")
+            print(f"Warning: QuiltID {over[O_QID]} not a valid ID in Override file")
             return
         #
 
@@ -632,7 +631,7 @@ class QuiltApp():
                 # Sanity checks
                 # Slats need 2 inches on each side to engage the poles
                 if rack[R_SWIDTH]*12 - 4.0 < rack[R_RWIDTH]:
-                    print("Width failure:", rack)
+                    print(f"Width failure: {rack}")
                     sys.exit()
                 #
 
@@ -718,10 +717,10 @@ class QuiltApp():
         found = False
 
         if verbose:
-            print("processing: %s, " % quilt[Q_ID])
+            print(f"processing: {quilt[Q_ID]}")
 
         if self.is_quilt_forced(quilt[Q_ID]):
-            print("Forced: ", quilt[Q_ID])
+            print(f"Forced: {quilt[Q_ID]}")
             return
 
         # For each rack
@@ -733,7 +732,7 @@ class QuiltApp():
             # Sanity checks
             # Slats need 2 inches on each side to engage the poles
             if rack[R_SWIDTH]*12 - 4.0 < rack[R_RWIDTH]:
-                print("Width failure:", rack)
+                print(f"Width failure: {rack}")
                 sys.exit()
 
             if verbose:
@@ -827,7 +826,7 @@ class QuiltApp():
         gap = 1          # gap between quilt
         advance = 12*12  # Amount to advance down the page for each row
         pole_width = 2           # Poles are two inches wide
-        max_ts = 5.0     # Maximum text size
+        max_text_size = 5.0     # Maximum text size
 
         # Set a last value that will be different on first pass
         last = self.racks[len(self.racks)-1]
@@ -882,7 +881,7 @@ class QuiltApp():
             else:
 
                 # If we changed bays
-                if rack[self.R_BAY] != last[self.R_BAY]:
+                if rack[self.right_bay] != last[self.right_bay]:
 
                     # Point to next bay's origin
                     x_org = x_org + last[R_RWIDTH] + pole_width
@@ -952,44 +951,47 @@ class QuiltApp():
                     master.add(dxf.rectangle((x_pos, y_org+slat_heigth),
                                quilt[Q_WIDTH], -quilt[Q_HEIGHT]))
 
-                    if quilt[Q_WIDTH] > len(quilt[Q_ID])*max_ts:
+                    if quilt[Q_WIDTH] > len(quilt[Q_ID])*max_text_size:
                         ang = 0.0
                         x_txt = x_pos+2
-                        yt = y_org+slat_heigth-7
-                        ts = max_ts
+                        y_txt = y_org+slat_heigth-7
+                        text_size = max_text_size
 
                     else:
 
                         ang = 0.0
                         x_txt = x_pos+2
-                        yt = y_org+slat_heigth-7
-                        ts = quilt[Q_WIDTH]/(len(quilt[Q_ID])+1)
-                        if quilt[Q_HEIGHT] < ts:
-                            ts = quilt[Q_HEIGHT]
-                        ts = min(ts, max_ts)
+                        y_txt = y_org+slat_heigth-7
+                        text_size = quilt[Q_WIDTH]/(len(quilt[Q_ID])+1)
+                        if quilt[Q_HEIGHT] < text_size:
+                            text_size = quilt[Q_HEIGHT]
+                        text_size = min(text_size, max_text_size)
                     #
 
                     # Draw quilt text
                     txt = quilt[Q_ID]
-                    sheet.add(dxf.text(txt, (x_txt, yt),
-                              height=ts, rotation=ang))
-                    master.add(dxf.text(txt, (x_txt, yt),
-                               height=ts, rotation=ang))
+                    sheet.add(dxf.text(txt, (x_txt, y_txt),
+                              height=text_size, rotation=ang))
+                    master.add(dxf.text(txt, (x_txt, y_txt),
+                               height=text_size, rotation=ang))
 
                     # Print details on the quilt
                     if not self.nodetail:
 
                         txt = str(quilt[Q_WIDTH])
-                        sheet.add(dxf.text(txt, (x_txt, yt-ts-1),
-                                  height=ts, rotation=ang))
-                        master.add(dxf.text(txt, (x_txt, yt-ts-1),
-                                   height=ts, rotation=ang))
+                        sheet.add(dxf.text(txt, (x_txt, y_txt-text_size-1),
+                                  height=text_size, rotation=ang))
+                        master.add(dxf.text(txt, (x_txt, y_txt-text_size-1),
+                                   height=text_size, rotation=ang))
 
                         txt = str(quilt[Q_HEIGHT])
-                        sheet.add(dxf.text(txt, (x_txt, yt-ts-1-ts-1),
-                                  height=ts, rotation=ang))
+                        sheet.add(dxf.text(txt, (x_txt,
+                            y_txt-text_size-1-text_size-1),
+                                  height=text_size, rotation=ang))
                         master.add(
-                            dxf.text(txt, (x_txt, yt-ts-1-ts-1), height=ts, rotation=ang))
+                            dxf.text(txt, (x_txt,
+                                y_txt-text_size-1-text_size-1),
+                                height=text_size, rotation=ang))
 
                         if self.is_quilt_forced(quilt[Q_ID]):
                             force_flag = "*"
@@ -999,9 +1001,13 @@ class QuiltApp():
                         txt = "%d%s%d%s%s" % (
                             rack[R_ROW], rack[R_SIDE][0], rack[R_RBAY], rack[R_LEVEL][0], force_flag)
                         sheet.add(
-                            dxf.text(txt, (x_txt, yt-ts-1-ts-1-ts-1), height=ts, rotation=ang))
+                            dxf.text(txt, (x_txt,
+                                y_txt-text_size-1-text_size-1-text_size-1),
+                                height=text_size, rotation=ang))
                         master.add(
-                            dxf.text(txt, (x_txt, yt-ts-1-ts-1-ts-1), height=ts, rotation=ang))
+                            dxf.text(txt, (x_txt,
+                                y_txt-text_size-1-text_size-1-text_size-1),
+                                height=text_size, rotation=ang))
                     #
 
                     # Move over width of quilt plus gap
@@ -1042,8 +1048,8 @@ class QuiltApp():
         advance = 150*scale_factor    # Amount to advance down the page for each row
         pole_width = 2*scale_factor   # Poles are two inches wide
         half_pole_width = (pole_width/2)          # Poles are two inches wide
-        bd = 22.0*scale_factor
-        br = bd/2.0
+        base_dia = 22.0*scale_factor
+        base_rad = base_dia/2.0
 
         # Set a last value that will be different on first pass
         last = self.racks[len(self.racks)-1]
@@ -1081,7 +1087,7 @@ class QuiltApp():
             else:
 
                 # If we changed bays
-                if rack[self.R_BAY] != last[self.R_BAY]:
+                if rack[self.right_bay] != last[self.right_bay]:
 
                     # Point to next bay's origin
                     x_org = x_org - (last[R_RWIDTH]*scale_factor + pole_width)
@@ -1096,9 +1102,11 @@ class QuiltApp():
             #
 
             # Draw the two poles and the line between them
-            plan_view.add(dxf.rectangle((x_org-br, y_org-br), bd, bd))
+            plan_view.add(dxf.rectangle((x_org-base_rad, y_org-base_rad), base_dia,
+                base_dia))
             plan_view.add(dxf.rectangle(
-                (x_org-rack[R_RWIDTH]*scale_factor-br, y_org-br), bd, bd))
+                (x_org-rack[R_RWIDTH]*scale_factor-base_rad, y_org-base_rad), base_dia,
+                base_dia))
             plan_view.add(
                 dxf.line((x_org, y_org), (x_org-rack[R_RWIDTH]*scale_factor, y_org)))
 
