@@ -24,8 +24,31 @@
 # how to run the program and some hints to how to layout the show.
 #
 # Software documentation:
+# I hope the comments in the code are of some help.
+# The basic approach is to read a few CSV files, try to find a place
+# for each quilt, then print various lists detailing the placement,
+# as well as some CAD files showing the placements graphicaly. 
 #
-# Written by: Patrick Skye Sweeney
+# If the placement of the quilts does not match you needs, you can
+# force a quilt to a given place by using the overrides file. 
+#
+# The function 'Process' is were the assignment loop starts.
+#
+# Note that the order the quilts are listed in the Overrides and
+# quilts file is important. The first quilt in the overrides file
+# goes to the first spot on that rack (if more than on quilt on a 
+# rack). So if you want to exchange positions of two quilts on a
+# single slat, you need to change the order in the CSV file. The
+# same thing holds true for the Quilts file. They will get placed
+# in order.
+#
+# There is some complexity when printing CAD (DXF) files. You can
+# print then as if you were standing in the hall looking at the quilts
+# or you can print them in "back to back" format to more easily
+# visualize how the quilts like up back to back. This adds considerable
+# shenanigans to the code.
+#
+# Written by: (Patrick) Skye Sweeney
 #
 ########################################################################
 """
@@ -568,6 +591,7 @@ class QuiltApp():
         #
 
         # Look for quilts that were not assigned
+        # TODO
 
         # Sort racks by row, then side, then bay, then level
         # The bay is selected as l2r or dxf
