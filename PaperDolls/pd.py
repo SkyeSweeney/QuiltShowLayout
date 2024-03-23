@@ -9,19 +9,25 @@ from dxfwrite import DXFEngine as dxf
 
 
 
-Q_CLASS  = 0
-Q_W      = 1
-Q_H      = 2
-Q_NOTES  = 3
-Q_PLACED = 4
+# Column indices for the Quilts.csv file
+Q_ID        = 0
+Q_CLASS     = 1
+Q_WIDTH     = 2
+Q_HEIGHT    = 3
+Q_NOTES     = 4
 
-A_PAGE = 0
-A_X = 1
-A_Y = 2
-A_W = 3
-A_H = 4
-A_USED = 5
+# Array indices for the Area array
+A_PAGE = 0  # Page number
+A_X    = 1  # X Location of quilt
+A_Y    = 2  # Y location of quilt
+A_W    = 3  # Width of quilt
+A_H    = 4  # Length/height of quilt
+A_ID   = 5  # Quilt ID
+A_USED = 6
 
+########################################################################
+# The main application class
+########################################################################
 class App:
 
     ####################################################################
@@ -29,27 +35,38 @@ class App:
     ####################################################################
     def __init__(self):
 
-        self.pageW = 8.5 - 0.5
-        self.pageH = 11.0 - 0.5
+        # Border on edge of physical paper
+        self.border = 0.25
 
+        # Size of the writeable paper
+        self.pageW = -self.border + 8.5 - self.border
+        self.pageH = -self.border + 11.0 - self.border
+
+        # Set verbose flag for more output
         self.verbose = True
 
-
+        # Start at page one
         self.iPage = 1
         
+        # Start with the first node in the Areas lists
         self.areas = []
         self.areas.append([self.iPage, 0.0, 0.0, self.pageW, self.pageH, False])
 
 
         self.assigned = []
 
-        # Read in qs
+        #############################
+        # Read in quilts into qs list
+        #############################
         maxH = 0
         maxW = 0
         self.qs = {}
-        fp = open("Quilts.csv", "r")
+        fp = open("../Quilts.csv", "r")
         for line in fp:
             toks   = line.strip().split(",")
+            # Skip comments
+            if toks[0][0] == "#":
+                    continue
             qid    = toks[0]
             cid    = toks[1]
             w      = float(toks[2])
@@ -60,7 +77,7 @@ class App:
             # Add to dictionary
             self.qs[qid] = [cid,w,h,notes,placed]
 
-            # Keep track of largest q W and H
+            # Keep track of largest quilt W and H
             if w > maxW:
                 maxW = w
             if h > maxH:
@@ -68,8 +85,10 @@ class App:
         #    
         fp.close()
 
+        ###############
         # Compute scale
-        ar = 8.5 / 11.0
+        ###############
+        ar = 8.5 / 11.0  # Aspect ratio
         z = ar * maxH
         if z > maxW:
             self.scale = 11.0 / maxH
@@ -77,9 +96,9 @@ class App:
             self.scale = 8.5 / maxW 
         #    
         self.scale = self.scale / 2.0
-        print(maxW, maxH, self.scale)
+        print(f"Max width {}, max heigth {}, Scale {}", maxW, maxH, self.scale)
 
-        self.printQs()
+        self.printQuilts()
 
     #
 
@@ -95,9 +114,9 @@ class App:
     #    
 
     ####################################################################
-    # Print qs
+    # Print Quilts list
     ####################################################################
-    def printQs(self):
+    def printQuilts(self):
         print("*********** QS ***************")
         for key, value in self.qs.items():
             print(key, value)
@@ -265,7 +284,7 @@ class App:
         lastPage = -10
 
         # Open the master layout of all rows
-        pd = dxf.drawing("PD.dxf")
+        pd = dxf.drawing("output.dxf")
 
         # Sort the assinged list by page number
         self.assigned.sort(key=page)
@@ -285,21 +304,21 @@ class App:
 
             q = self.qs[qid(a)]
             if self.verbose:
-                print(qid(a), page(a), xOrg, yOrg,  q[Q_W]*self.scale, q[Q_H]*self.scale)
+                print(qid(a), page(a), xOrg, yOrg,  q[Q_WIDTH]*self.scale, q[Q_LENGTH]*self.scale)
 
             # Add in rectangle
-            r = dxf.rectangle((xOrg, yOrg) , q[Q_W]*self.scale, q[Q_H]*self.scale)
+            r = dxf.rectangle((xOrg, yOrg) , q[Q_WIDTH]*self.scale, q[Q_LENGTH]*self.scale)
             pd.add(r)
 
             # Add in QID/Class
             s = "%s(%s)" % (qid(a), "XXX")
-            t = q[Q_W] / 10.0 * self.scale
-            pd.add(dxf.text(s, (xOrg, yOrg+q[Q_H]*self.scale - t), height = t))
+            t = q[Q_WIDTH] / 10.0 * self.scale
+            pd.add(dxf.text(s, (xOrg, yOrg+q[Q_LENGTH]*self.scale - t), height = t))
 
             # Add in size
-            s = "(%.1f * %.1f)" % (q[Q_W], q[Q_H])
-            t = q[Q_W] / 10.0 * self.scale
-            pd.add(dxf.text(s, (xOrg, yOrg+q[Q_H]*self.scale - t*2), height = t))
+            s = "(%.1f * %.1f)" % (q[Q_WIDTH], q[Q_LENGTH])
+            t = q[Q_WIDTH] / 10.0 * self.scale
+            pd.add(dxf.text(s, (xOrg, yOrg+q[Q_LENGTH]*self.scale - t*2), height = t))
 
 
             lastPage = page(a)
