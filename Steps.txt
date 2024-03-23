@@ -1,0 +1,38 @@
+
+Copy the previous year's folder to a folder for the current year.
+Get files from Janice Kagenski
+Convert her xls files to csv
+Get the data fro the Raffle quilts and make a csv file from them.
+Modify the CVSs to get into Entry, Class, Width, Length, Notes order
+Append all the CVSs to each other and call Quilts.csv
+Sort Quilts.csv first by Class, then length, then width as a starting point.
+
+Change the catagories of the David's house quilts to D so they get hung
+together.
+
+Change the class of the quilts that are not Raffle, Davids, or challenge into
+XXL(109" and up) XL (97-108) L (85-96) M (49-84) S (0-48). 
+This is just a starting point.
+
+Erase all the contents of the overrides.csv file (keep the header)
+Start with the Racks.csv file from the previous year.
+
+Make sure the DXF directory exists
+
+Just for fun, run the Quilts.py program to make sure ti runs.
+It will generate a bunch of errors for un hung quilts.
+Primary cause at this point are a lack of racks of the appropriate class.
+
+The results of this will tell you what you are missing for racks to hang
+quilts. In 2024 there were numerous raffle quilts where in 2023 there was only
+one. So only one rack was assigned to hold a quilt of class "R". Hence all but
+one raffle quilt was not hung. Same sort of thing holds true for other quilts 
+and classes as they vary from year to year.
+
+Now look at the previous floor plan and decide what racks will be converted
+to what classes to accomodate the current year. Make the adjustements needed
+in racks.csv as well as annotating the floor plan. Start with the largest quilts - the ones that need 10'and 9' uprights.
+Next consider where special categories (raffle, challenge, Davids House) need to go and what their requirements are.
+
+Run the quilt program and make adjustemts a few more times to get the bulk of
+the quilts hung.
