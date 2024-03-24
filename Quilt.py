@@ -141,6 +141,7 @@ class QuiltApp():
         self.nodetail = stuff.nodetail    # Print more detail on each quilt
         self.left_to_right = stuff.l2r
         self.nodxf = stuff.nodxf
+        self.verbose = stuff.verbose
         self.show_racks = stuff.show_racks
 
         self.quilts = []
@@ -570,8 +571,6 @@ class QuiltApp():
     def process(self):
         """ Do the whole process """
 
-        verbose = False
-
         # Read in quilts and racks
         self.read_quilts()
         self.read_racks()
@@ -582,12 +581,12 @@ class QuiltApp():
 
         # First assign all overrides
         for over in self.overrides:
-            self.force(over, verbose)
+            self.force(over)
         #
 
         # Assign each quilt to a rack
         for quilt in self.quilts:
-            self.assign(quilt, verbose)
+            self.assign(quilt)
         #
 
         # Look for quilts that were not assigned
@@ -621,13 +620,13 @@ class QuiltApp():
 
     #####################################################################
     #####################################################################
-    def force(self, over, verbose=False):
+    def force(self, over):
         """ Force quilt to rack """
 
         found = False
 
-        if verbose:
-            print(f"Forcing: {over[O_QID]}")
+        if self.verbose:
+            print(f"Forcing: {over[O_QID]} to row{over[O_ROW]} side{over[O_SIDE]} bay{over[O_BAY]} level {over[O_LEVEL]}")
 
         # Get the quilt to force
         quilt = self.get_quilt_by_id(over[O_QID])
@@ -682,7 +681,7 @@ class QuiltApp():
                             #
 
                         else:
-                            if verbose:
+                            if self.verbose:
                                 print("  solo")
 
                         #
@@ -708,17 +707,17 @@ class QuiltApp():
                         break
 
                     else:
-                        if verbose:
+                        if self.verbose:
                             print("  Not high enough")
                         fail_reason += "Not high enough "
                     #
                 else:
-                    if verbose:
+                    if self.verbose:
                         print("  Not wide enough")
                     fail_reason += "Not wide enough "
                 #
             else:
-                if verbose:
+                if self.verbose:
                     print("  Not right class", rack[R_ROW], over[O_ROW],
                           rack[R_SIDE],  over[O_SIDE],
                           rack[R_RBAY],  over[O_BAY],
@@ -735,12 +734,12 @@ class QuiltApp():
 
     #####################################################################
     #####################################################################
-    def assign(self, quilt, verbose):
+    def assign(self, quilt):
         """ Assign quilts to racks """
 
         found = False
 
-        if verbose:
+        if self.verbose:
             print(f"processing: {quilt[Q_ID]}")
 
         if self.is_quilt_forced(quilt[Q_ID]):
@@ -759,7 +758,7 @@ class QuiltApp():
                 print(f"Width failure: {rack}")
                 sys.exit()
 
-            if verbose:
+            if self.verbose:
                 print("  Rack %d" % rack[R_ID])
 
             # If right class
@@ -788,14 +787,14 @@ class QuiltApp():
                             # Is the height of this quilt comperable to the others?
                             percent = rack[R_TOLERANCE]
                             if math.fabs(quilt[Q_HEIGHT] - heigth)/heigth > percent:
-                                if verbose:
+                                if self.verbose:
                                     print("  Not similar %d %d" %
                                           (quilt[Q_HEIGHT], heigth))
                                 continue
                             #
 
                         else:
-                            if verbose:
+                            if self.verbose:
                                 print("  solo")
 
                         #
@@ -819,15 +818,15 @@ class QuiltApp():
                         break
 
                     else:
-                        if verbose:
+                        if self.verbose:
                             print("  Not high enough")
                     #
                 else:
-                    if verbose:
+                    if self.verbose:
                         print("  Not wide enough")
                 #
             else:
-                if verbose:
+                if self.verbose:
                     print("  Not right class")
             #
         # end racks
