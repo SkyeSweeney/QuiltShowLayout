@@ -31,8 +31,7 @@ A_Y     = 3  # Y location of quilt on page
 A_W     = 4  # Width of quilt on page
 A_H     = 5  # Length/height of quilt on page
 A_USED  = 6  # Area assiged
-A_CLASS = 7  # Class for the quilt in this area
-A_QID   = 8  # Quilt ID for the quilt in this area
+A_QID   = 7  # Quilt ID for the quilt in this area
 
 ########################################################################
 # The main application class
@@ -51,11 +50,11 @@ class App:
         self.border = 0.25
 
         # Size of the writeable paper
-        self.pageW = -self.border + self.page_w - self.border
-        self.pageH = -self.border + self.page_h - self.border
+        self.page_w = -self.border + self.page_w - self.border
+        self.page_h = -self.border + self.page_h - self.border
 
         # Set verbose flag for more output
-        self.verbose = True
+        self.verbose = False
 
         # Start at page one
         self.i_page = 1
@@ -68,7 +67,7 @@ class App:
         cid = "?"
         qid = "?"
         used = False
-        area = [self.last_aid, self.i_page, x, y, self.pageW, self.pageH, used, cid, qid]
+        area = [self.last_aid, self.i_page, x, y, self.page_w, self.page_h, used, cid, qid]
         self.areas.append(area)
 
 
@@ -77,10 +76,10 @@ class App:
         #############################
         # Read in quilts into list
         #############################
-        maxH = 0
-        maxW = 0
+        max_h = 0
+        max_w = 0
         self.quilts = []
-        fp = open("Quilts.csv", "r")
+        fp = open("Raffles.csv", "r")
         for line in fp:
 
             # Tokenize the line
@@ -103,10 +102,10 @@ class App:
             self.quilts.append(q)
 
             # Keep track of largest quilt W and H
-            if w > maxW:
-                maxW = w
-            if h > maxH:
-                maxH = h
+            if w > max_w:
+                max_w = w
+            if h > max_h:
+                max_h = h
         #
         fp.close()
 
@@ -117,14 +116,15 @@ class App:
         # Compute scale
         ###############
         ar = self.page_w / self.page_h  # Aspect ratio
-        z = ar * maxH
-        if z > maxW:
-            self.scale = self.page_h / maxH
+        z = ar * max_h
+        if z > max_w:
+            self.scale = self.page_h / max_h
         else:
-            self.scale = self.page_w / maxW
+            self.scale = self.page_w / max_w
         #
         self.scale = self.scale / 2.0
-        print(f"Max width {maxW}, max heigth {maxH}, Scale {self.scale}")
+        self.scale = 1/12
+        print(f"Max width {max_w}, max heigth {max_h}, Scale {self.scale}")
 
         self.print_quilts()
 
@@ -177,11 +177,11 @@ class App:
 
             qid    = quilt[Q_QID]
             cid    = quilt[Q_CLASS]
-            qx     = float(quilt[Q_WIDTH])  * self.scale  # Put into paper space
-            qy     = float(quilt[Q_HEIGHT]) * self.scale  # Put into paper space
+            q_x    = float(quilt[Q_WIDTH])  * self.scale  # Put into paper space
+            q_y    = float(quilt[Q_HEIGHT]) * self.scale  # Put into paper space
 
             if self.verbose:
-                print(f"Trying to place {qid} of size ({quilt[Q_WIDTH]:.1f}*{quilt[Q_HEIGHT]:.1f}) paper size ({qx:.1f}*{qy:.1f})")
+                print(f"Trying to place {qid} of size ({quilt[Q_WIDTH]:.1f}*{quilt[Q_HEIGHT]:.1f}) paper size ({q_x:.1f}*{q_y:.1f})")
             #
 
             # Try to place quilt in any of the unused areas
@@ -200,7 +200,7 @@ class App:
                 cid = "?"
                 qid = "?"
                 used = False
-                area = [self.last_aid, self.i_page, x, y, self.pageW, self.pageH, used, cid, qid]
+                area = [self.last_aid, self.i_page, x, y, self.page_w, self.page_h, used, cid, qid]
                 self.areas.append(area)
 
                 # Place on the new page
@@ -236,79 +236,88 @@ class App:
         # Extract fields from quilts list
         qid    = quilt[Q_QID]
         cid    = quilt[Q_CLASS]
-        qx     = float(quilt[Q_WIDTH])  * self.scale  # Put into paper space
-        qy     = float(quilt[Q_HEIGHT]) * self.scale  # Put into paper space
+        q_x    = float(quilt[Q_WIDTH])  * self.scale  # Put into paper space
+        q_y    = float(quilt[Q_HEIGHT]) * self.scale  # Put into paper space
 
         # For each area
         for area in self.areas:
 
-            page = area[A_PAGE]
-            ax   = area[A_X]
-            ay   = area[A_Y]
-            aw   = area[A_W]
-            ah   = area[A_H]
-            used = area[A_USED]
-            aid  = area[A_AID]
-            cid  = area[A_CLASS]
+            page  = area[A_PAGE]
+            a_x   = area[A_X] # Origin of area on page
+            a_y   = area[A_Y] # Orrgin of area on page
+            a_w   = area[A_W] # Width of area
+            a_h   = area[A_H] # Height of area
+            used  = area[A_USED] # Area used
+            aid   = area[A_AID]  # Id fo area
+
+            if self.verbose:
+                print(f"  Look at area aid:{aid} p:{page} x:{a_x:.1f} y:{a_y:.1f} w:{a_w:.1f} h:{a_h:.1f} u:{used}")
+            #
 
             # If this area is in use, skip
             if used:
+                if self.verbose:
+                    print(f"  Used")
                 continue
             #
 
-            if self.verbose:
-                print(f"  Look at area id:{aid} p:{page} x:{ax:.1f} y:{ay:.1f} w:{aw:.1f} h:{ah:.1f} u:{used}")
-            #
-
             # If the quilt fits in this area
-            if (qy < ah) and (qx < aw):
+            if (q_y < a_h) and (q_x < a_w):
 
                 if self.verbose:
-                    print(f"  Placing quilt {qid} in aid:{aid} p:{page} x:{ax:.1f} y:{ay:.1f} w:{aw:.1f} h:{ah:.1f} u:{used}")
+                    print(f"  Placing quilt {qid} in aid:{aid} p:{page} x:{a_x:.1f} y:{a_y:.1f} w:{a_w:.1f} h:{a_h:.1f} u:{used}")
 
                 # Update the area information
-                area[A_QID]   = qid
-                area[A_CLASS] = cid
+                area[A_QID]  = qid
                 area[A_USED] = True
 
-                # Add to the assigned list
+                # Add area to the Assigned list
                 self.assigned.append(area)
 
                 # Set flag to indicate we placed with quilt
                 placed = True
 
-                # Determine left over area1
-                self.last_aid += 1
-                x = ax + qx + 0.5
-                y = ay
-                w = aw-x
-                h = qy
-                used = False
-                cid = "?"
-                qid = "?"
-                area1 = [self.last_aid, page, x, y, w, h, used, cid, qid]
-                if w > 0:
+                # Determine left over area1 to right
+                r = a_w - 0.25 - q_x
+                if r > 0:
+                    x = a_x + q_x + 0.25
+                    y = a_y
+                    w = a_w - 0.25 - q_x
+                    h = q_y
+                    used = False
+                    cid = "?"
+                    qid = "?"
+                    self.last_aid += 1
+                    area1 = [self.last_aid, page, x, y, w, h, used, cid, qid]
+                    self.areas.append(area1)
                     if self.verbose:
                         print(f"  Adding area1 aid:{self.last_aid} p:{page} x:{x:.1f} y:{y:.1f} w:{w:.1f} h:{h:.1f} u:False")
-                    self.areas.append(area1)
+                    #
+                else:
+                    print(f"  No room to right")
                 #
 
-                # Determine left over area2
-                self.last_aid += 1
-                x = ax
-                y = ay + qy + 0.5
-                w = aw
-                h = ah - y
-                used = False
-                cid = "?"
-                qid = "?"
-                area2 = [self.last_aid, page, x, y, w, h, used, cid, qid]
-                if h > 0:
+                # Determine left over area2 above
+                r = a_h - 0.25 - q_y
+                if r > 0:
+                    self.last_aid += 1
+                    x = a_x
+                    y = a_y + q_y + 0.25
+                    w = a_w
+                    h = a_h - 0.25 - q_y
+                    used = False
+                    cid = "?"
+                    qid = "?"
+                    area2 = [self.last_aid, page, x, y, w, h, used, cid, qid]
+                    self.areas.append(area2)
                     if self.verbose:
                         print(f"  Adding area2 aid:{self.last_aid} p:{page} x:{x:.1f} y:{y:.1f} w:{w:.1f} h:{h:.1f} u:False")
-                    self.areas.append(area2)
+                    #
+                else:
+                    print(f"  No room above")
                 #
 
+                # Quit loop if we placed the quilt in a area
                 break
 
             # If it fit
@@ -339,33 +348,46 @@ class App:
         # For each assignment
         for a in self.assigned:
 
-            # Set origin for this page
-            xOrg = 0
-            yOrg = a[A_PAGE] * self.pageH * 2 + a[A_Y]
+            # Set origin for this PAGE
+            x_page_org = 5.0
+            y_page_org = 5.0 + a[A_PAGE] * self.page_h * 2
 
             # If a new page
             if a[A_PAGE] != last_page:
-                r = dxf.rectangle((xOrg, yOrg) , self.page_w, self.page_h)
+                # Draw page border
+                r = dxf.rectangle((x_page_org, y_page_org) , self.page_w, self.page_h)
                 pd.add(r)
             #
 
+            # Find the quilt given its id
             q = self.find_quilt(a[A_QID])
             #if self.verbose:
             #    print(f"id:{qid(a)}, p:{page(a)}, x:{xOrg:.1f}, y:{yOrg:.1f}, w:{q[Q_WIDTH]*self.scale:.1f}, h:{q[Q_HEIGHT]*self.scale:.1f}")
 
-            # Add in rectangle
-            r = dxf.rectangle((xOrg, yOrg) , q[Q_WIDTH]*self.scale, q[Q_HEIGHT]*self.scale)
+            # Get the origin of the quilt
+            x_quilt_org = x_page_org + a[A_X]
+            y_quilt_org = y_page_org + a[A_Y]
+
+            # Add in rectangle for the quilt outline
+            r = dxf.rectangle((x_quilt_org, y_quilt_org) , q[Q_WIDTH]*self.scale, q[Q_HEIGHT]*self.scale)
             pd.add(r)
 
-            # Add in QID/Class
-            s = f"{a[A_QID]}({a[A_CLASS]})"
+            # Compute the origin of the text
             t = q[Q_WIDTH] / 10.0 * self.scale
-            pd.add(dxf.text(s, (xOrg, yOrg+q[Q_HEIGHT]*self.scale - t), height = t))
+            x_text = x_quilt_org 
+            y_text = y_quilt_org + q[Q_HEIGHT]*self.scale - t
+
+            # Add in QID/Class
+            s = f"{q[Q_QID]}({q[Q_CLASS]})"
+            pd.add(dxf.text(s, (x_text, y_text), height = t))
+
+            x_text = x_quilt_org
+            y_text = y_quilt_org + q[Q_HEIGHT]*self.scale - t*2
 
             # Add in size
             s = f"({q[Q_WIDTH]:.1f} * {q[Q_HEIGHT]:.1f})"
             t = q[Q_WIDTH] / 10.0 * self.scale
-            pd.add(dxf.text(s, (xOrg, yOrg+q[Q_HEIGHT]*self.scale - t*2), height = t))
+            pd.add(dxf.text(s, (x_text, y_text), height = t))
 
 
             last_page = page(a)
