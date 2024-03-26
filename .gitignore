@@ -4,6 +4,10 @@
 DXF
 GUI/__pycache__
 
-*.csv
-QuiltList_*
+QuiltList.csv
+RowList.csv
+PaperDolls/Raffles.csv
+
+*.dxf
+*~
 

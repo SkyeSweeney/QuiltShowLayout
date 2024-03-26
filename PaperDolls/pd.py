@@ -43,6 +43,15 @@ class App:
     def __init__(self):
         """  Constructor """
 
+        # Check for arguments
+        if len(sys.argv) != 2:
+            print("Usage: pd.py fn.csv")
+            exit(1)
+        #
+
+        # Get the file name of the csv file
+        fn = sys.argv[1]
+
         self.page_w = 8.5
         self.page_h = 11.0
 
@@ -79,7 +88,7 @@ class App:
         max_h = 0
         max_w = 0
         self.quilts = []
-        fp = open("Raffles.csv", "r")
+        fp = open(fn, "r")
         for line in fp:
 
             # Tokenize the line
@@ -124,7 +133,7 @@ class App:
         #
         self.scale = self.scale / 2.0
         self.scale = 1/12
-        print(f"Max width {max_w}, max heigth {max_h}, Scale {self.scale}")
+        print(f"Max width {max_w}, max heigth {max_h}, Scale 1: {1/self.scale}")
 
         self.print_quilts()
 
@@ -190,7 +199,8 @@ class App:
             # If we could not place in current unused areas
             if not placed: 
 
-                print("  Unable to place. Starting new page")
+                if self.verbose:
+                    print("  Unable to place. Starting new page")
 
                 # Create a new page
                 self.i_page += 1
@@ -294,7 +304,8 @@ class App:
                         print(f"  Adding area1 aid:{self.last_aid} p:{page} x:{x:.1f} y:{y:.1f} w:{w:.1f} h:{h:.1f} u:False")
                     #
                 else:
-                    print(f"  No room to right")
+                    if self.verbose:
+                        print(f"  No room to right")
                 #
 
                 # Determine left over area2 above
@@ -314,7 +325,8 @@ class App:
                         print(f"  Adding area2 aid:{self.last_aid} p:{page} x:{x:.1f} y:{y:.1f} w:{w:.1f} h:{h:.1f} u:False")
                     #
                 else:
-                    print(f"  No room above")
+                    if self.verbose:
+                        print(f"  No room above")
                 #
 
                 # Quit loop if we placed the quilt in a area
