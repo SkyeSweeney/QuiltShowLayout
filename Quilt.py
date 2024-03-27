@@ -652,8 +652,8 @@ class QuiltApp():
                 # This is the right spot
 
                 # Sanity checks
-                # Slats need 2 inches on each side to engage the poles
-                if rack[R_SWIDTH]*12 - 4.0 < rack[R_RWIDTH]:
+                # Slats need 4 inches on each side to engage the poles
+                if rack[R_SWIDTH]*12 - 4.0*2 < rack[R_RWIDTH]:
                     print(f"Width failure: {rack}")
                     sys.exit()
                 #
