@@ -46,7 +46,6 @@ LW-405,7,Back,1,Top,
 B-113,7,Back,2,Top,
 LC-209,7,Back,3,Top,
 LC-202,7,Back,3,Top,
-B-131,7,Front,3,Top,
 LW-417,7,Front,3,Top,
 LW-421,7,Front,2,Top,
 LW-414,7,Front,1,Top,
@@ -78,10 +77,6 @@ SW-309,8,Front,1,Mid,Small
 SW-302,8,Front,1,Mid,Small
 SW-311,8,Front,1,Mid,Small
 ,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
 B-103,9,Back,1,Top,Davids
 B-105,9,Back,1,Top,Davids
 B-111,9,Back,1,Top,Davids
@@ -96,19 +91,22 @@ B-110,9,Front,2,Top,Davids
 ,,,,,
 C-511,13,Front,1,Top,
 C-512,13,Front,1,Top,
-C-517,14,Front,1,Top,Placing Challenges
+C-504,13,Front,1,Top,Placing Challenges
+C-501,13,Front,1,Top,Placing Challenges
+C-514,13,Front,1,Top,Placing Challenges
+,,,,,
+C-517,14,Front,1,Mid,Placing Challenges
 C-506,14,Front,1,Top,Placing Challenges
 C-516,14,Front,1,Top,Placing Challenges
-C-515,14,Front,1,Top,Placing Challenges
+C-515,14,Front,1,Mid,Placing Challenges
 C-503,14,Front,1,Top,Placing Challenges
-C-504,14,Front,1,Mid,Placing Challenges
-C-501,14,Front,1,Mid,Placing Challenges
 C-508,14,Front,1,Mid,Placing Challenges
-C-505,14,Front,1,Mid,Placing Challenges
+C-505,14,Front,1,Top,Placing Challenges
 C-509,14,Front,1,Mid,Placing Challenges
 C-513,14,Front,1,Mid,Placing Challenges
-C-514,14,Front,1,Mid,Placing Challenges
+,,,,,
 C-510,15,Front,1,Top,
+,,,,,
 R-23,17,Front,1,Top,
 R-30,17,Front,1,Top,
 R-21,17,Front,1,Mid,
